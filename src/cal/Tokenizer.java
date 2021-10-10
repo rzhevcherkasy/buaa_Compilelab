@@ -23,7 +23,7 @@ public class Tokenizer {
            // System.out.println("lexUInt");
             lexUInt();
             return true;
-        } else if (Character.isAlphabetic(peek)) {
+        } else if (Character.isAlphabetic(peek)||peek=='_') {
            // System.out.println("lexIdentOrKeyword");
             lexIdentOrKeyword();
             return true;
@@ -53,7 +53,7 @@ public class Tokenizer {
         StringBuilder tempStringBuilder = new StringBuilder("");
 
 
-        while(Character.isLetterOrDigit(it.peekChar())) {
+        while(Character.isLetterOrDigit(it.peekChar())||it.peekChar()=='_') {
             tempStringBuilder.append(it.nextChar());
         }
         String tempString = tempStringBuilder.toString();
