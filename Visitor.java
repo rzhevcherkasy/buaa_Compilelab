@@ -77,12 +77,11 @@ public class Visitor extends  compileBaseVisitor<Void> {
     }
 
     /**
-     处理数字转化
      */
     public int dealNum(String num){
         if(num.length()>=2&&num.charAt(0)=='0'){
-            if(num.charAt(1)=='x'||num.charAt(1)=='X'){ //十六进制
-                int sum = 0;	//数据范围上，不超过8位的十六进制数，所以计算总和的sum应该声明为long型，而不是int型，否则会出错。
+            if(num.charAt(1)=='x'||num.charAt(1)=='X'){ 
+                int sum = 0;	
                 char c[]=num.toCharArray();
                 int n = c.length;
                 for (int i = 2; i < n; i++) {
@@ -106,8 +105,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
                 return sum;
             }
-            else{               //八进制
-                int sum = 0;	//数据范围上，不超过8位的十六进制数，所以计算总和的sum应该声明为long型，而不是int型，否则会出错。
+            else{               
+                int sum = 0;	
                 char c[]=num.toCharArray();
                 int n = c.length;
                 for (int i = 0; i < n; i++){
@@ -116,7 +115,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 return sum;
             }
         }
-        else{            //十进制
+        else{            
             return Integer.parseInt(num);
         }
     }

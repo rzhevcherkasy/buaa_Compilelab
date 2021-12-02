@@ -11,7 +11,7 @@ public class Main {
             String filePath = args[0];
             File file = new File(filePath);
             Reader in = null;
-            // 一次读一个字节
+        
 
             in = new InputStreamReader(new FileInputStream(file));
             int a;
@@ -71,7 +71,7 @@ public class Main {
             parser.removeErrorListeners();
             parser.addErrorListener(DescriptiveErrorListener.INSTANCE);
             ParseTree tree = parser.compUnit();
-            //System.out.println(tree.toStringTree(parser)); // 打印字符串形式的语法树
+           
             Visitor visitor = new Visitor();
             visitor.visit(tree);
         }
