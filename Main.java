@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) throws Exception { ;
         try{
             String input = "";
-            String filePath = args[1];
+            String filePath = args[0];
             File file = new File(filePath);
             Reader in = null;
             // 一次读一个字节
