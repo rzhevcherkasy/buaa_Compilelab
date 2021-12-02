@@ -5,5 +5,5 @@ image = { source = "dockerfile", path = "." }
 
 run = [
     "export CLASSPATH=/app/src/antlr-4.9.2-complete.jar",
-    "java Main > $ir",
+    "Java Main $input> $ir",
 ]
