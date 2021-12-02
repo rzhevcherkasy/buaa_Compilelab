@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import java.io.*;
 
 public class Main {
-    public static void main(String[] args) throws Exception { ;
+    public static void main(String[] args) throws Exception { 
         try{
             String input = "";
             String filePath = args[0];
