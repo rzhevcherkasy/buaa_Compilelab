@@ -72,7 +72,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         visit(ctx.Number());
         System.out.print(dealNum(ctx.Number().getText()));
         visit(ctx.Checkpoint());
-        System.out.println(";");
+        System.out.println("");
         return super.visitChildren(ctx);
     }
 
