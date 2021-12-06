@@ -12,7 +12,7 @@ public class Main {
             try{
                 Scanner sc = new Scanner(infile);
                 while(sc.hasNextLine()){
-                    input +=sc.nextLine();
+                    input +=sc.nextLine()+'\n';
                     //System.out.println(input);
                 }
                 sc.close();

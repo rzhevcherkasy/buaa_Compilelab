@@ -1,1 +1,3 @@
-int main(){return 010;}
+int main() { // mian
+    return /* 123 */ 234;
+}
