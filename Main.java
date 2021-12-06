@@ -3,26 +3,25 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.*;
+import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws Exception { 
-        try{
-            String input = "";
-            String filePath = args[0];
-            File file = new File(filePath);
-            Reader in = null;
-        
-
-            in = new InputStreamReader(new FileInputStream(file));
-            int a;
-
-            while ((a = in.read()) != -1) {
-                String b=String.valueOf((char)a);
-                input=input.concat(b);
+    public static void main(String[] args) throws Exception {
+            String input = "" ;
+            File infile = new File(args[0]);
+            try{
+                Scanner sc = new Scanner(infile);
+                while(sc.hasNextLine()){
+                    input +=sc.nextLine();
+                    //System.out.println(input);
+                }
+                sc.close();
+            }catch(FileNotFoundException e){
+                e.printStackTrace();
             }
-            in.close();
-            int i=0;
             String inputnew="";
+            int i=0;
+           // System.out.println(input);
             while(i<input.length())
             {
                 char now=input.charAt(i);
@@ -62,6 +61,7 @@ public class Main {
                 }
 
             }
+        //System.out.println(inputnew);
             CharStream inputStream = CharStreams.fromString(inputnew);
             compileLexer lexer = new compileLexer(inputStream);
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
@@ -71,13 +71,8 @@ public class Main {
             parser.removeErrorListeners();
             parser.addErrorListener(DescriptiveErrorListener.INSTANCE);
             ParseTree tree = parser.compUnit();
-           
+
             Visitor visitor = new Visitor();
             visitor.visit(tree);
-        }
-        catch (Exception e){
-            System.exit(2333);
-        }
-        return;
     }
 }
