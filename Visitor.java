@@ -5,6 +5,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     List<Node> nodeList=new LinkedList<Node>();
     int tempId=0;
     int tempNum=0;
+    Node tempNode=null;
     String op;
     String whiteSpace ="    ";
     @Override public Void visitCompUnit(compileParser.CompUnitContext ctx) {
@@ -76,6 +77,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     @Override public Void visitStmt(compileParser.StmtContext ctx) {
         visit(ctx.exp());
         visit(ctx.RET());
+        tempId=nodeList.get(nodeList.size()-1).getVal();
         System.out.print(whiteSpace+"ret i32 "+"%"+tempId);
       //  System.out.print(dealNum(ctx.Number().getText()));
         visit(ctx.Checkpoint());
@@ -141,14 +143,32 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.mulExp());
         }
         else{
-            
+            visit(ctx.children.get(0));
+            Node left=tempNode;
+            visit(ctx.children.get(2));
+            Node right=tempNode;
+            visit(ctx.children.get(1));
+            String optype=ctx.children.get(1).getText();
+            OpDeal(left,right,optype);
         }
         return null;
     }
 
     @Override
     public Void visitMulExp(compileParser.MulExpContext ctx) {
-        return super.visitMulExp(ctx);
+        if(ctx.children.size()==1){
+            visit(ctx.unaryExp());
+        }
+        else{
+            visit(ctx.children.get(0));
+            Node left=tempNode;
+            visit(ctx.children.get(2));
+            Node right=tempNode;
+            visit(ctx.children.get(1));
+            String optype=ctx.children.get(1).getText();
+            OpDeal(left,right,optype);
+        }
+        return null;
     }
 
     @Override
@@ -159,31 +179,22 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 break;
             }
             case 2-> {
-                visit(ctx.unaryExp());
-
-                int leftId=-1;
-                int rightId=tempId;
-                if(rightId==0){
-                    rightId=-1;
-                    String opType=ctx.unaryOp().getText();
-                    tempId=OpDeal(-1,-1,opType,0,tempNum);
-                }
-                else{
-                    String opType=ctx.unaryOp().getText();
-                    tempId=OpDeal(-1,rightId,opType,0,0);
-                }
-                visit(ctx.unaryOp());
+                visit(ctx.children.get(1));
+                Node right=tempNode;
+                String opType=ctx.unaryOp().getText();
+                OpDeal(null,right,opType);
                 break;
             }
-
         }
         return null;
     }
 
     @Override
-    public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
-        if(ctx.children.size()==1){
-            tempNum=dealNum(ctx.Number().getText());
+        public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
+        if(ctx.children.size()==1){      //遇到number了
+            Node node=new Node(-1,dealNum(ctx.Number().getText()),"num",0);
+            tempNode=node;
+           // nodeList.add(node);
             visit(ctx.Number());
         }
         else{
@@ -199,43 +210,59 @@ public class Visitor extends  compileBaseVisitor<Void> {
         return super.visitUnaryOp(ctx);
     }
 
-    public int OpDeal(int leftId,int rightId,String op,int leftNum,int rightNum){
-        //System.out.println("222");
-        if(op.equals("-")){
-            tempId++;
-            Node leftNode=null;
-            Node rightNode=null;
-            if(leftId==-1&&rightId==-1){
-                //rightNode=nodeList.get(rightId);
-                int val=leftNum-rightNum;
-                nodeList.add(new Node(tempId,val,"number",0));
-                //System.out.println("222");
-                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+leftNum+", "+rightNum);
+    public String OpEnum(String op){
+        if(op.equals("*")){
+            return "mul";
+        }
+        else if(op.equals("+")){
+            return "add";
+        }
+        else if(op.equals("-")){
+            return "sub";
+        }
+        else if(op.equals("/")){
+            return "sdiv";
+        }
+        else if(op.equals("%")){
+            return "srem";
+        }
+        return null;
+    }
+    public void OpDeal(Node leftNode,Node rightNode,String op){
+        String left=null;
+        String right=null;
+        String opType;
+        if(leftNode==null){
+            left="0";
+        }
+        else{
+            if(leftNode.getType().equals("num")){
+                left=String.valueOf(leftNode.getVal());
             }
-            else if(leftId==-1){
-                rightNode=nodeList.get(rightId-1);
-                int val=0-rightNode.getVal();
-                nodeList.add(new Node(tempId,val,"number",0));
-                //System.out.println("222");
-                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+leftNum+", "+"%"+rightNode.getId());
-            }
-            else if(rightId==-1){
-                leftNode=nodeList.get(leftId-1);
-                int val=leftNode.getVal()-rightNum;
-                nodeList.add(new Node(tempId,val,"number",0));
-                //System.out.println("222");
-                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+"%"+leftNode.getId()+", "+rightNum);
-            }
-            else{
-                leftNode=nodeList.get(leftId-1);
-                rightNode=nodeList.get(rightId-1);
-                int val=leftNode.getVal()-rightNode.getVal();
-                nodeList.add(new Node(tempId,val,"number",0));
-                //System.out.println("222");
-                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+"%"+leftNode.getId()+", "+"%"+rightNode.getId());
+            else if(leftNode.getType().equals("exp")){
+                left="%"+String.valueOf(leftNode.getVal());
             }
         }
-        return tempId;
+        if(rightNode.getType().equals("num")){
+            right=String.valueOf(rightNode.getVal());
+        }
+        else if(rightNode.getType().equals("exp")){
+            right="%"+String.valueOf(rightNode.getVal());
+        }
+        int top=0;
+        int depth=0;
+        for(int i=0;i<nodeList.size();i++){
+            if(nodeList.get(i).getType().equals("exp")){
+                top=nodeList.get(i).getVal();
+                depth=nodeList.get(i).getDepth();
+            }
+        }
+        Node newNode=new Node(nodeList.size(),top+1,"exp",depth);
+        tempNode=newNode;
+        nodeList.add(newNode);
+        System.out.println(whiteSpace+"%"+(top+1)+" = "+OpEnum(op)+" i32 "+left+", "+right);
+        return;
     }
+
 
 }

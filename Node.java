@@ -1,7 +1,7 @@
 public class Node {
-    private int id;
-    private int val;
-    private String type;
+    private int id;   //主键
+    private int val;  //数值 num是本身，exp是%i
+    private String type;  //类型 num,exp
     private int depth;
 
     public int getId() {
