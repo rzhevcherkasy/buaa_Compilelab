@@ -1,4 +1,11 @@
+import java.util.LinkedList;
+import java.util.List;
+
 public class Visitor extends  compileBaseVisitor<Void> {
+    List<Node> nodeList=new LinkedList<Node>();
+    int tempId=0;
+    int tempNum=0;
+    String op;
     String whiteSpace ="    ";
     @Override public Void visitCompUnit(compileParser.CompUnitContext ctx) {
         return super.visitChildren(ctx);
@@ -67,13 +74,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitStmt(compileParser.StmtContext ctx) {
+        visit(ctx.exp());
         visit(ctx.RET());
-        System.out.print(whiteSpace+"ret i32 ");
-        visit(ctx.Number());
-        System.out.print(dealNum(ctx.Number().getText()));
+        System.out.print(whiteSpace+"ret i32 "+"%"+tempId);
+      //  System.out.print(dealNum(ctx.Number().getText()));
         visit(ctx.Checkpoint());
         System.out.println(";");
-        return super.visitChildren(ctx);
+        return null;
     }
 
     /**
@@ -119,6 +126,116 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else{            //十进制
             return Integer.parseInt(num);
         }
+    }
+
+
+    @Override
+    public Void visitExp(compileParser.ExpContext ctx) {
+
+        return super.visitExp(ctx);
+    }
+
+    @Override
+    public Void visitAddExp(compileParser.AddExpContext ctx) {
+        if(ctx.children.size()==1){
+            visit(ctx.mulExp());
+        }
+        else{
+            
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitMulExp(compileParser.MulExpContext ctx) {
+        return super.visitMulExp(ctx);
+    }
+
+    @Override
+    public Void visitUnaryExp(compileParser.UnaryExpContext ctx) {
+        switch (ctx.children.size()) {
+            case 1-> {
+                visit(ctx.primaryExp());
+                break;
+            }
+            case 2-> {
+                visit(ctx.unaryExp());
+
+                int leftId=-1;
+                int rightId=tempId;
+                if(rightId==0){
+                    rightId=-1;
+                    String opType=ctx.unaryOp().getText();
+                    tempId=OpDeal(-1,-1,opType,0,tempNum);
+                }
+                else{
+                    String opType=ctx.unaryOp().getText();
+                    tempId=OpDeal(-1,rightId,opType,0,0);
+                }
+                visit(ctx.unaryOp());
+                break;
+            }
+
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
+        if(ctx.children.size()==1){
+            tempNum=dealNum(ctx.Number().getText());
+            visit(ctx.Number());
+        }
+        else{
+            visit(ctx.LPAREN());
+            visit(ctx.exp());
+            visit(ctx.RPAREN());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitUnaryOp(compileParser.UnaryOpContext ctx) {
+        return super.visitUnaryOp(ctx);
+    }
+
+    public int OpDeal(int leftId,int rightId,String op,int leftNum,int rightNum){
+        //System.out.println("222");
+        if(op.equals("-")){
+            tempId++;
+            Node leftNode=null;
+            Node rightNode=null;
+            if(leftId==-1&&rightId==-1){
+                //rightNode=nodeList.get(rightId);
+                int val=leftNum-rightNum;
+                nodeList.add(new Node(tempId,val,"number",0));
+                //System.out.println("222");
+                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+leftNum+", "+rightNum);
+            }
+            else if(leftId==-1){
+                rightNode=nodeList.get(rightId-1);
+                int val=0-rightNode.getVal();
+                nodeList.add(new Node(tempId,val,"number",0));
+                //System.out.println("222");
+                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+leftNum+", "+"%"+rightNode.getId());
+            }
+            else if(rightId==-1){
+                leftNode=nodeList.get(leftId-1);
+                int val=leftNode.getVal()-rightNum;
+                nodeList.add(new Node(tempId,val,"number",0));
+                //System.out.println("222");
+                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+"%"+leftNode.getId()+", "+rightNum);
+            }
+            else{
+                leftNode=nodeList.get(leftId-1);
+                rightNode=nodeList.get(rightId-1);
+                int val=leftNode.getVal()-rightNode.getVal();
+                nodeList.add(new Node(tempId,val,"number",0));
+                //System.out.println("222");
+                System.out.println(whiteSpace+"%"+tempId+" = sub i32 "+"%"+leftNode.getId()+", "+"%"+rightNode.getId());
+            }
+        }
+        return tempId;
     }
 
 }

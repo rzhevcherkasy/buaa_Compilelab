@@ -45,4 +45,40 @@ public interface compileVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStmt(compileParser.StmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link compileParser#exp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExp(compileParser.ExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link compileParser#addExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAddExp(compileParser.AddExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link compileParser#mulExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMulExp(compileParser.MulExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link compileParser#unaryExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryExp(compileParser.UnaryExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link compileParser#primaryExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrimaryExp(compileParser.PrimaryExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link compileParser#unaryOp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryOp(compileParser.UnaryOpContext ctx);
 }
