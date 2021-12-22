@@ -1,7 +1,8 @@
 public class Node {
     private int id;   //主键
     private int val;  //数值 num是本身，exp是%i
-    private String type;  //类型 num,exp
+    private String name;  //名字
+    private String type;  //类型 num,exp,intVar,constVar,load
     private int depth;
 
     public int getId() {
@@ -32,9 +33,26 @@ public class Node {
         return depth;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public Node(int id, int val, String type, int depth) {
         this.id = id;
         this.val = val;
+        this.type = type;
+        this.depth = depth;
+        this.name=Integer.toString(val);
+    }
+
+    public Node(int id, int val, String name, String type, int depth) {
+        this.id = id;
+        this.val = val;
+        this.name = name;
         this.type = type;
         this.depth = depth;
     }

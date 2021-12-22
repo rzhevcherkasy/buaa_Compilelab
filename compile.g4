@@ -1,44 +1,65 @@
 grammar compile;
 
 
-Number             : Decimal_const | Octal_const | Hexadecimal_const;
-//Decimal_const      : Nonzero_digit | Decimal_const Digit;
-Decimal_const      : Nonzero_digit (Digit)*;
-Octal_const        : '0' (Octal_digit)*;
-Hexadecimal_const  : Hexadecimal_prefix Hexadecimal_digit (Hexadecimal_digit)*;
+//Nonzerodigit:[1-9];
+//Octaldigit:[1-7];
+Hexadecimal_prefix:'0x' | '0X';
 
-Hexadecimal_prefix : '0x' | '0X';
-Nonzero_digit      : '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-Octal_digit        : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7';
-Digit              : '0' | Nonzero_digit;
-Hexadecimal_digit  : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-                      | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
-                      | 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
-LPAREN: '(';
-RPAREN: ')';
-ADD: '+';
-SUB: '-';
-MUL: '*';
-DIV: '/';
-INT:'int';
-MAIN:'main';
-Lbrace:'{';
-Rbrace:'}';
-Percent:'%';
-RET:'return';
-Checkpoint:';';
-WHITE_SPACE: [ \r\n\t] -> skip; // -> skip 表示解析时跳过该规则
+Decimal_const:[0-9]|[1-9][0-9]+;
+Octal_const:'0'[0-7]*;
+Hexadecimal_const:Hexadecimal_prefix[0-9a-zA-Z]+;
+RET: ('\n' | '\r'|'\t'|' ') ->skip;
+Condop1:'<' | '>' | '<=' | '>=';
+Condop2:'==' | '!=';
 
 
-compUnit : funcDef;
-funcDef  : funcType ident LPAREN RPAREN block;
-funcType : INT;
-ident    : MAIN;
-block    : Lbrace stmt Rbrace;
-stmt     : RET exp Checkpoint;
-exp      : addExp;
-addExp   : mulExp| addExp (ADD | SUB) mulExp;
-mulExp  : unaryExp| mulExp (MUL | DIV | Percent) unaryExp;
-unaryExp : primaryExp | unaryOp unaryExp;
-primaryExp : LPAREN exp RPAREN | Number;
-unaryOp    : ADD | SUB;
+
+bType:'int';
+funcType:'int';
+unaryOp:'+' | '-' | '!';
+compUnit: funcDef;
+number:Decimal_const | Octal_const | Hexadecimal_const;
+funcDef:funcType Ident  '(' ')'   block;
+block:'{' blockItem+ '}';
+blockItem:decl| stmt;
+unaryExp:primaryExp|unaryOp unaryExp| Ident '(' funcrparams ')';
+
+stmt:'return' exp ';'|exp';'|lval'=' exp ';'|'if' '(' cond ')' stmt ('else' stmt)?|block;
+decl:constDecl | varDecl;
+constDecl:'const' bType constDef (',' constDef)* ';';
+constDef:Ident '=' constInitval;
+constInitval:constExp;
+constExp:addExp;
+varDecl:bType varDef (',' varDef)* ';';
+varDef:Ident | Ident '=' initval;
+initval:exp;
+exp:addExp;
+addExp : mulExp | addExp ('+' | '-') mulExp;
+mulExp :unaryExp | mulExp ('*' | '/' | '%') unaryExp;
+//:mulExp (('+'|'-')mulExp)*;
+//mulExp:unaryExp (('*' | '/' | '%')unaryExp)*;
+funcrparams:(exp(',' exp)*)|;
+primaryExp:'('exp')'|number|lval ;
+lval:Ident;
+//cond
+cond:lorExp;
+relExp:addExp(Condop1 addExp)* ; // [new]
+eqExp:relExp(Condop2 relExp)* ;// [new]
+landExp:eqExp('&&' eqExp)* ;// [new]
+lorExp:landExp('||' landExp)*;// [new]
+
+Ident:([a-zA-Z]|'_')(([a-zA-Z]|[0-9]|'_')*);
+
+
+
+
+
+
+
+
+
+
+
+
+
+

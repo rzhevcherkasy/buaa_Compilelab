@@ -1,8 +1,10 @@
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Visitor extends  compileBaseVisitor<Void> {
     List<Node> nodeList=new LinkedList<Node>();
+    List<Var>  varList=new LinkedList<>();
     int tempId=0;
     int tempNum=0;
     Node tempNode=null;
@@ -19,10 +21,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
      */
     @Override public Void visitFuncDef(compileParser.FuncDefContext ctx) {
         visit(ctx.funcType());
-        visit(ctx.ident());
-        visit(ctx.LPAREN());
+        System.out.print("@main");
+        //visit(ctx.ident());
         System.out.print("(");
-        visit(ctx.RPAREN());
         System.out.print(")");
         visit(ctx.block());
         return null;
@@ -34,8 +35,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitFuncType(compileParser.FuncTypeContext ctx) {
-        visit(ctx.INT());
-        if (ctx.INT().getText().equals("int"))
+        if (ctx.children.get(0).getText().equals("int"))
         {
             System.out.print("define dso_local i32 ");
         }
@@ -47,13 +47,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitIdent(compileParser.IdentContext ctx) {
+    /**
+     *  @Override public Void visitIdent(compileParser.IdentContext ctx) {
         if (ctx.MAIN().getText().equals("main"))
         {
             System.out.print("@main");
         }
         return null;
-    }
+    }*/
     /**
      * {@inheritDoc}
      *
@@ -61,10 +62,11 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitBlock(compileParser.BlockContext ctx) {
-        visit(ctx.Lbrace());
         System.out.println("{");
-        visit(ctx.stmt());
-        visit(ctx.Rbrace());
+        for(int i=0;i<ctx.children.size();i++){
+            visit(ctx.children.get(i));
+        }
+        //visit(ctx.children.get(1));
         System.out.println("}");
         return null;
     }
@@ -75,15 +77,40 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitStmt(compileParser.StmtContext ctx) {
-        visit(ctx.exp());
-        visit(ctx.RET());
-        tempId=nodeList.get(nodeList.size()-1).getVal();
-        System.out.print(whiteSpace+"ret i32 "+"%"+tempId);
-      //  System.out.print(dealNum(ctx.Number().getText()));
-        visit(ctx.Checkpoint());
-        System.out.println(";");
+        if (ctx.children.size() == 4) {
+           // visit(ctx.lval());
+            Var tempVar=null;
+            for(int i=0;i<varList.size();i++){
+                if(ctx.children.get(0).getText().equals(varList.get(i).getName())){
+                    tempVar=varList.get(i);
+                    break;
+                }
+            }
+            if(tempVar==null||tempVar.isIfConst()==true){
+                System.exit(3);
+            }
+            visit(ctx.exp());
+            Node store = tempNode;
+            if (store.getType() == "num") {
+                System.out.println(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
+            } else {
+                System.out.println(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
+            }
+        } else {
+            visit(ctx.exp());
+
+            Node retNode = nodeList.get(nodeList.size() - 1);
+            if (retNode.getType().equals("num")) {
+                System.out.print(whiteSpace + "ret i32 " + retNode.getVal());
+            } else {
+                System.out.print(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1));
+            }
+            //  System.out.print(dealNum(ctx.Number().getText()));
+            System.out.println(";");
+        }
         return null;
     }
+
 
     /**
      处理数字转化
@@ -185,22 +212,20 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 OpDeal(null,right,opType);
                 break;
             }
+            case 4->{               //自定义函数
+                break;
+            }
         }
         return null;
     }
 
     @Override
         public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
-        if(ctx.children.size()==1){      //遇到number了
-            Node node=new Node(-1,dealNum(ctx.Number().getText()),"num",0);
-            tempNode=node;
-           // nodeList.add(node);
-            visit(ctx.Number());
+        if(ctx.children.size()==1){      //number/lval
+            visit(ctx.children.get(0));
         }
         else{
-            visit(ctx.LPAREN());
             visit(ctx.exp());
-            visit(ctx.RPAREN());
         }
         return null;
     }
@@ -242,6 +267,15 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("exp")){
                 left="%"+String.valueOf(leftNode.getVal());
             }
+            else if(leftNode.getType().equals("constVar")){
+                System.exit(3);
+            }
+            else if(leftNode.getType().equals("intVar")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
+            else if(leftNode.getType().equals("load")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
         }
         if(rightNode.getType().equals("num")){
             right=String.valueOf(rightNode.getVal());
@@ -249,14 +283,24 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else if(rightNode.getType().equals("exp")){
             right="%"+String.valueOf(rightNode.getVal());
         }
+        else if(rightNode.getType().equals("intVar")){
+            right="%"+String.valueOf(rightNode.getId());
+        }
+        else if(rightNode.getType().equals("constVar")){
+            right=String.valueOf(rightNode.getVal());
+        }
+        else if(rightNode.getType().equals("load")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
         int top=0;
         int depth=0;
         for(int i=0;i<nodeList.size();i++){
             if(nodeList.get(i).getType().equals("exp")){
-                top=nodeList.get(i).getVal();
+
                 depth=nodeList.get(i).getDepth();
             }
         }
+        top=nodeList.size();
         Node newNode=new Node(nodeList.size(),top+1,"exp",depth);
         tempNode=newNode;
         nodeList.add(newNode);
@@ -264,5 +308,169 @@ public class Visitor extends  compileBaseVisitor<Void> {
         return;
     }
 
+    @Override
+    public Void visitBType(compileParser.BTypeContext ctx) {
+        return super.visitBType(ctx);
+    }
+
+    @Override
+    public Void visitNumber(compileParser.NumberContext ctx) {
+        Node node=new Node(-1,dealNum(ctx.getText()),"num",0);
+        tempNode=node;
+        return super.visitNumber(ctx);
+    }
+
+    @Override
+    public Void visitBlockItem(compileParser.BlockItemContext ctx) {
+        return super.visitBlockItem(ctx);
+    }
+
+    @Override
+    public Void visitDecl(compileParser.DeclContext ctx) {
+        return super.visitDecl(ctx);
+    }
+
+    @Override
+    public Void visitConstDecl(compileParser.ConstDeclContext ctx) {
+        return super.visitConstDecl(ctx);
+    }
+
+    @Override
+    public Void visitConstDef(compileParser.ConstDefContext ctx) {
+        if(ctx.children.size()==1){    //没有初始化
+            int constNum=dealNum(ctx.children.get(0).getText());
+           // Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"constVar",0);
+            //nodeList.add(node);
+           // System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
+            varList.add(var);
+        }
+        else if(ctx.children.size()==3){
+            int top=nodeList.size();
+            visit(ctx.constInitval());
+            Node store=tempNode;
+            if(store.getType()=="num"||store.getType()=="constVar"){
+                int constNum=tempNode.getVal();
+                Node node=new Node(nodeList.size(),constNum,ctx.children.get(0).getText(),"constVar",0);
+                Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
+                varList.add(var);
+               // nodeList.add(node);
+               // System.out.println(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+            }
+            else{
+                System.exit(3);  //需要改
+            }
+        }
+        // System.out.println("22323");
+        return super.visitConstDef(ctx);
+    }
+
+    @Override
+    public Void visitConstInitval(compileParser.ConstInitvalContext ctx) {
+        return super.visitConstInitval(ctx);
+    }
+
+    @Override
+    public Void visitConstExp(compileParser.ConstExpContext ctx) {
+        return super.visitConstExp(ctx);
+    }
+
+    @Override
+    public Void visitVarDecl(compileParser.VarDeclContext ctx) {
+        return super.visitVarDecl(ctx);
+    }
+
+    @Override
+    public Void visitVarDef(compileParser.VarDefContext ctx) {
+        if(ctx.children.size()==1){    //没有初始化
+            int top=nodeList.size();
+          //  System.out.println("var def:"+ctx.children.get(0).getText());
+            Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
+            Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
+            nodeList.add(node);
+            varList.add(var);
+            System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+        }
+        else if(ctx.children.size()==3){
+            int top=nodeList.size();
+            Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
+          //  System.out.println("var def:"+ctx.children.get(0).getText());
+            Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
+            varList.add(var);
+            nodeList.add(node);
+            System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            visit(ctx.initval());
+            Node store=tempNode;
+            if(store.getType()=="num"||store.getType()=="constVar"){
+                System.out.println(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+            }
+            else{
+                System.out.println(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
+            }
+
+        }
+       // System.out.println("22323");
+        return null;
+    }
+
+    @Override
+    public Void visitInitval(compileParser.InitvalContext ctx) {
+        return super.visitInitval(ctx);
+    }
+
+    @Override
+    public Void visitFuncrparams(compileParser.FuncrparamsContext ctx) {
+        return super.visitFuncrparams(ctx);
+    }
+
+    @Override
+    public Void visitLval(compileParser.LvalContext ctx) {
+        String name=ctx.getText();
+        for(int i=0;i<varList.size();i++){
+            if(varList.get(i).getName().equals(name)){
+                if(varList.get(i).isIfConst()==true){     //const
+                    Node node=new Node(-1,varList.get(i).getVal(),name,"constVar",0);
+                    tempNode=node;
+                    break;
+                }
+                else{                                  //int
+                    int nodeId=varList.get(i).getNodeId();
+                    Node loadNode=nodeList.get(nodeId-1);
+                    int top=nodeList.size();
+                    Node node=new Node(nodeList.size(),0,name+"load","load",0);
+                    tempNode=node;
+                    System.out.println(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
+                    nodeList.add(node);
+                    break;
+                }
+            }
+        }
+        return super.visitLval(ctx);
+    }
+
+    @Override
+    public Void visitCond(compileParser.CondContext ctx) {
+        return super.visitCond(ctx);
+    }
+
+    @Override
+    public Void visitRelExp(compileParser.RelExpContext ctx) {
+        return super.visitRelExp(ctx);
+    }
+
+    @Override
+    public Void visitEqExp(compileParser.EqExpContext ctx) {
+        return super.visitEqExp(ctx);
+    }
+
+    @Override
+    public Void visitLandExp(compileParser.LandExpContext ctx) {
+        return super.visitLandExp(ctx);
+    }
+
+    @Override
+    public Void visitLorExp(compileParser.LorExpContext ctx) {
+        return super.visitLorExp(ctx);
+    }
 
 }
