@@ -512,11 +512,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
     @Override
     public Void visitLval(compileParser.LvalContext ctx) {
         String name=ctx.getText();
+        boolean check=false;
         for(int i=0;i<varList.size();i++){
             if(varList.get(i).getName().equals(name)){
                 if(varList.get(i).isIfConst()==true){     //const
                     Node node=new Node(-1,varList.get(i).getVal(),name,"constVar",0);
                     tempNode=node;
+                    check=true;
                     break;
                 }
                 else{                                  //int
@@ -527,9 +529,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     tempNode=node;
                     output.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
                     nodeList.add(node);
+                    check=true;
                     break;
                 }
             }
+        }
+        if(!check){
+            System.exit(3);
         }
         return super.visitLval(ctx);
     }
