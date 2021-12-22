@@ -266,9 +266,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
                     //output.addFirst("declare void @putint(i32)");
                     Node inputNode=tempNode;
-                    Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
-                    nodeList.add(node);
-                    tempNode=node;
+                   // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    //nodeList.add(node);
+                   // tempNode=node;
                     if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
                         output.add(whiteSpace + "call void @putint(i32 "+inputNode.getVal()+")");
                     }
@@ -289,9 +289,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     }
                    // output.addFirst("declare void @putch(i32)");
                     Node inputNode=tempNode;
-                    Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
-                    nodeList.add(node);
-                    tempNode=node;
+                   // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                   // nodeList.add(node);
+                   // tempNode=node;
                     if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
                         output.add(whiteSpace + "call void @putch(i32 "+inputNode.getVal()+")");
                     }
