@@ -8,8 +8,8 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
             String input = "" ;
-          // File infile = new File(args[0]);
-        File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
+           File infile = new File(args[0]);
+        //File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
             try{
                 Scanner sc = new Scanner(infile);
                 while(sc.hasNextLine()){
