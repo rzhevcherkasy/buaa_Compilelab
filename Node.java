@@ -2,7 +2,7 @@ public class Node {
     private int id;   //主键
     private int val;  //数值 num是本身，exp是%i
     private String name;  //名字
-    private String type;  //类型 num,exp,intVar,constVar,load
+    private String type;  //类型 num,exp,intVar,constVar,load,call
     private int depth;
 
     public int getId() {

@@ -8,8 +8,8 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
             String input = "" ;
-           File infile = new File(args[0]);
-        //File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
+          // File infile = new File(args[0]);
+        File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
             try{
                 Scanner sc = new Scanner(infile);
                 while(sc.hasNextLine()){
@@ -75,5 +75,8 @@ public class Main {
 
             Visitor visitor = new Visitor();
             visitor.visit(tree);
+            for(int j=0;j<visitor.output.size();j++){
+                System.out.println(visitor.output.get(j));
+            }
     }
 }

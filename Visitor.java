@@ -5,6 +5,7 @@ import java.util.List;
 public class Visitor extends  compileBaseVisitor<Void> {
     List<Node> nodeList=new LinkedList<Node>();
     List<Var>  varList=new LinkedList<>();
+    public LinkedList<String> output=new LinkedList<String>();
     int tempId=0;
     int tempNum=0;
     Node tempNode=null;
@@ -21,10 +22,6 @@ public class Visitor extends  compileBaseVisitor<Void> {
      */
     @Override public Void visitFuncDef(compileParser.FuncDefContext ctx) {
         visit(ctx.funcType());
-        System.out.print("@main");
-        //visit(ctx.ident());
-        System.out.print("(");
-        System.out.print(")");
         visit(ctx.block());
         return null;
     }
@@ -37,7 +34,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
     @Override public Void visitFuncType(compileParser.FuncTypeContext ctx) {
         if (ctx.children.get(0).getText().equals("int"))
         {
-            System.out.print("define dso_local i32 ");
+            output.add("define dso_local i32 @main(){");
+           // System.out.print("define dso_local i32 @main(){");
         }
         return null;
     }
@@ -62,12 +60,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitBlock(compileParser.BlockContext ctx) {
-        System.out.println("{");
+       // System.out.println("{");
         for(int i=0;i<ctx.children.size();i++){
             visit(ctx.children.get(i));
         }
         //visit(ctx.children.get(1));
-        System.out.println("}");
+       // System.out.println("}");
+        output.add("}");
         return null;
     }
     /**
@@ -92,21 +91,25 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.exp());
             Node store = tempNode;
             if (store.getType() == "num") {
-                System.out.println(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
+                output.add(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
             } else {
-                System.out.println(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
+                output.add(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
             }
-        } else {
+        }
+        else if(ctx.children.size()==2){  //exp';'
+            visit(ctx.exp());
+        }
+        else {
             visit(ctx.exp());
 
-            Node retNode = nodeList.get(nodeList.size() - 1);
+            Node retNode = tempNode;
             if (retNode.getType().equals("num")) {
-                System.out.print(whiteSpace + "ret i32 " + retNode.getVal());
+                output.add(whiteSpace + "ret i32 " + retNode.getVal());
             } else {
-                System.out.print(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1));
+                output.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1));
             }
             //  System.out.print(dealNum(ctx.Number().getText()));
-            System.out.println(";");
+          //  System.out.println(";");
         }
         return null;
     }
@@ -213,6 +216,89 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 break;
             }
             case 4->{               //自定义函数
+                visit(ctx.funcrparams());
+                String linkFunction=ctx.children.get(0).getText();
+                if(linkFunction.equals("getint")){
+                    boolean check=false;
+                    for(int i=0;i<output.size();i++){
+                        if(output.get(i).equals("declare i32 @getint()")){
+                            check=true;
+                            break;
+                        }
+                    }
+                    if(!check){
+                        output.addFirst("declare i32 @getint()");
+                    }
+                    Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    nodeList.add(node);
+                    tempNode=node;
+                    output.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getint()");
+                }
+                else if(linkFunction.equals("getch()")){
+                    boolean check=false;
+                    for(int i=0;i<output.size();i++){
+                        if(output.get(i).equals("declare i32 @getch()")){
+                            check=true;
+                            break;
+                        }
+                    }
+                    if(!check){
+                        output.addFirst("declare i32 @getch()");
+                    }
+
+
+                    Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    nodeList.add(node);
+                    tempNode=node;
+                    output.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getch()");
+                }
+                else if(linkFunction.equals("putint")){
+                    boolean check=false;
+                    for(int i=0;i<output.size();i++){
+                        if(output.get(i).equals("declare void @putint(i32)")){
+                            check=true;
+                            break;
+                        }
+                    }
+                    if(!check){
+                        output.addFirst("declare void @putint(i32)");
+                    }
+
+                    //output.addFirst("declare void @putint(i32)");
+                    Node inputNode=tempNode;
+                    Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    nodeList.add(node);
+                    tempNode=node;
+                    if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
+                        output.add(whiteSpace + "call void @putint(i32 "+inputNode.getVal()+")");
+                    }
+                    else{
+                        output.add(whiteSpace + "call void @putint(i32 %"+(inputNode.getId()+1)+")");
+                    }
+                }
+                else if(linkFunction.equals("putch")){
+                    boolean check=false;
+                    for(int i=0;i<output.size();i++){
+                        if(output.get(i).equals("declare void @putch(i32)")){
+                            check=true;
+                            break;
+                        }
+                    }
+                    if(!check){
+                        output.addFirst("declare void @putch(i32)");
+                    }
+                   // output.addFirst("declare void @putch(i32)");
+                    Node inputNode=tempNode;
+                    Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    nodeList.add(node);
+                    tempNode=node;
+                    if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
+                        output.add(whiteSpace + "call void @putch(i32 "+inputNode.getVal()+")");
+                    }
+                    else{
+                        output.add(whiteSpace + "call void @putch(i32 %"+(inputNode.getId()+1)+")");
+                    }
+                }
                 break;
             }
         }
@@ -304,7 +390,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         Node newNode=new Node(nodeList.size(),top+1,"exp",depth);
         tempNode=newNode;
         nodeList.add(newNode);
-        System.out.println(whiteSpace+"%"+(top+1)+" = "+OpEnum(op)+" i32 "+left+", "+right);
+        output.add(whiteSpace+"%"+(top+1)+" = "+OpEnum(op)+" i32 "+left+", "+right);
         return;
     }
 
@@ -389,7 +475,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
             nodeList.add(node);
             varList.add(var);
-            System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            output.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
         }
         else if(ctx.children.size()==3){
             int top=nodeList.size();
@@ -398,14 +484,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
             Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
             varList.add(var);
             nodeList.add(node);
-            System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            output.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
             visit(ctx.initval());
             Node store=tempNode;
             if(store.getType()=="num"||store.getType()=="constVar"){
-                System.out.println(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+                output.add(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
             }
             else{
-                System.out.println(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
+                output.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
             }
 
         }
@@ -439,7 +525,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     int top=nodeList.size();
                     Node node=new Node(nodeList.size(),0,name+"load","load",0);
                     tempNode=node;
-                    System.out.println(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
+                    output.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
                     nodeList.add(node);
                     break;
                 }
