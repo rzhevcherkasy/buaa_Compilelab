@@ -234,7 +234,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     tempNode=node;
                     output.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getint()");
                 }
-                else if(linkFunction.equals("getch()")){
+                else if(linkFunction.equals("getch")){
                     boolean check=false;
                     for(int i=0;i<output.size();i++){
                         if(output.get(i).equals("declare i32 @getch()")){
