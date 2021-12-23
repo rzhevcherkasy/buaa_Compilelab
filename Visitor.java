@@ -353,8 +353,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("exp")){
                 left="%"+String.valueOf(leftNode.getVal());
             }
-            else if(leftNode.getType().equals("constVar")){
-                System.exit(3);
+           else if(leftNode.getType().equals("constVar")){
+                left=String.valueOf(leftNode.getVal());
             }
             else if(leftNode.getType().equals("intVar")){
                 left="%"+String.valueOf(leftNode.getId()+1);
@@ -373,7 +373,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             right="%"+String.valueOf(rightNode.getId());
         }
         else if(rightNode.getType().equals("constVar")){
-            right=String.valueOf(rightNode.getVal());
+           right=String.valueOf(rightNode.getVal());
         }
         else if(rightNode.getType().equals("load")){
             right="%"+String.valueOf(rightNode.getId()+1);
@@ -435,7 +435,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             int top=nodeList.size();
             visit(ctx.constInitval());
             Node store=tempNode;
-            if(store.getType()=="num"||store.getType()=="constVar"){
+            if(store.getType()!=null){
                 int constNum=tempNode.getVal();
                 Node node=new Node(nodeList.size(),constNum,ctx.children.get(0).getText(),"constVar",0);
                 Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
