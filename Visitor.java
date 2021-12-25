@@ -433,6 +433,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         else if(ctx.children.size()==3){
             int top=nodeList.size();
+            String left=ctx.children.get(0).getText();
+            for(int i=0;i<varList.size();i++){
+                if(varList.get(i).getName().equals(left)){
+                    System.exit(3);
+                }
+            }
             visit(ctx.constInitval());
             Node store=tempNode;
             if(store.getType()!=null){

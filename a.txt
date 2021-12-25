@@ -1,9 +1,10 @@
 int main() {
-    int sudo = 0;
-    const int rm = 5;
-    int r = 3;
-    const int home = rm * 5 - 20;
-    sudo = rm -r /home*        0;
-    putint(sudo);
+    int a1 = getint();
+    int a2 = getint();
+    int a3 = getint(), a4 = 4;
+    int a5 = getch();
+    putint(a5);
+    putch(10);
+    putint(a1 + a2 + a3 - a4);
     return 0;
 }
