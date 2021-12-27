@@ -5,9 +5,17 @@ import java.util.List;
 public class Visitor extends  compileBaseVisitor<Void> {
     List<Node> nodeList=new LinkedList<Node>();
     List<Var>  varList=new LinkedList<>();
+
+    List<Block> BlockList=new LinkedList<>();  //所有Block
+    List<Block> tempBlockList=new ArrayList<>();
+    List<Block> landBlockList=new ArrayList<>();  //lab4递归用的
+    List<orblock> orblocksList=new ArrayList<>();  //lab4递归存值用的
+
     public LinkedList<String> output=new LinkedList<String>();
     int tempId=0;
     int tempNum=0;
+    int step=0;   //Block步数
+    Block tempBlock=null;
     Node tempNode=null;
     String op;
     String whiteSpace ="    ";
@@ -35,7 +43,19 @@ public class Visitor extends  compileBaseVisitor<Void> {
         if (ctx.children.get(0).getText().equals("int"))
         {
             output.add("define dso_local i32 @main(){");
-           // System.out.print("define dso_local i32 @main(){");
+            /*
+            接下来要初始化一个简单的初始块
+             *
+
+             */
+            //tempBlock.blockOutput.add("    br label %"+"a0");
+            BlockList.add(new Block());
+            step++;
+            tempBlock=BlockList.get(0);
+            output.add("    br label %"+"a0");
+            tempBlock.type="func";
+            tempBlock.set=false;
+            tempBlock.end=0;
         }
         return null;
     }
@@ -66,8 +86,35 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         //visit(ctx.children.get(1));
        // System.out.println("}");
-        output.add("}");
+        //tempBlock.blockOutput.add("}");
         return null;
+    }
+    Block createnewblock(Block parblock,boolean a) {
+        if(!parblock.set)
+            parblock.blockOutput.add("    br label %"+"a"+step+'\n');
+            BlockList.add(new Block(tempBlock, step++));
+            tempBlock = BlockList.get(BlockList.size() - 1);
+            tempBlock.set=a;
+        return tempBlock;
+    }
+    void dealorlist(List<orblock>orblockList)
+    {
+        for(int i=0;i<orblockList.size();i++)
+        {
+            List<Block>blocks=orblockList.get(i).blockList;
+            for(int j=0;j<blocks.size();j++)
+            {
+                Block now=blocks.get(j);
+                if(j==blocks.size()-1)
+                {
+                    now.trueblock=orblockList.get(i).trueblock;
+
+                }
+                if(i==orblockList.size()-1)
+                    now.falseblock=orblockList.get(i).falseblock;
+                now.blockOutput.add("    br i1 %" + (now.end+1) + ",label %" + "a"+now.trueblock + ", label %" + "a"+now.falseblock + "\n");
+            }
+        }
     }
     /**
      * {@inheritDoc}
@@ -91,26 +138,78 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.exp());
             Node store = tempNode;
             if (store.getType() == "num") {
-                output.add(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
+                tempBlock.blockOutput.add(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
             } else {
-                output.add(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
+                tempBlock.blockOutput.add(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
             }
         }
         else if(ctx.children.size()==2){  //exp';'
             visit(ctx.exp());
+        }
+        else if(ctx.children.get(0).getText().equals("if"))
+        {
+            int leftjump,rightjump;
+            Block parblock=tempBlock;
+            visit(ctx.cond());  //注意这里需要全局变量
+            List<orblock> temporblockList=new ArrayList<>(orblocksList);
+            Block left=createnewblock(tempBlock,false);
+            leftjump=left.start;
+
+            visit(ctx.stmt(0));
+            left=tempBlock;
+            left.set=true;
+            if(ctx.children.size()>5) {
+                Block right = createnewblock(tempBlock,false);
+                rightjump=right.start;
+                visit(ctx.stmt(1));
+                right=tempBlock;
+                right.set=true;
+                Block dest = createnewblock(tempBlock,false);
+                left.jump = dest.start;
+                right.jump = dest.start;
+                if(right.flag==0)
+                    right.blockOutput.add("    br label %"+"a"+right.jump+'\n');
+                if(left.flag==0)
+                    left.blockOutput.add("    br label %"+"a"+left.jump+'\n');
+                for(int i=0;i<temporblockList.size();i++)
+                {
+                    temporblockList.get(i).trueblock = leftjump;
+                    if(i==temporblockList.size()-1)
+                        temporblockList.get(i).falseblock=rightjump;
+                }
+                dealorlist(temporblockList);
+            }
+            else
+            {
+                left.set=true;
+                Block dest = createnewblock(tempBlock,false);
+                if(left.flag==0)
+                    left.output= left.output.concat("    br label %"+"a"+dest.start+'\n');
+                for(int i=0;i<temporblockList.size();i++)
+                {
+                    temporblockList.get(i).trueblock = leftjump;
+                    if(i==temporblockList.size()-1)
+                        temporblockList.get(i).falseblock=dest.start;
+                }
+                dealorlist(temporblockList);
+            }}
+        else if(ctx.block()!=null){  //block
+            visit(ctx.block());
+            return null;
         }
         else {
             visit(ctx.exp());
 
             Node retNode = tempNode;
             if (retNode.getType().equals("num")) {
-                output.add(whiteSpace + "ret i32 " + retNode.getVal());
+                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + retNode.getVal());
             } else {
-                output.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1));
+                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1));
             }
             //  System.out.print(dealNum(ctx.Number().getText()));
           //  System.out.println(";");
         }
+
         return null;
     }
 
@@ -232,7 +331,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
                     nodeList.add(node);
                     tempNode=node;
-                    output.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getint()");
+                    tempBlock.blockOutput.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getint()");
                 }
                 else if(linkFunction.equals("getch")){
                     boolean check=false;
@@ -250,7 +349,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
                     nodeList.add(node);
                     tempNode=node;
-                    output.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getch()");
+                    tempBlock.blockOutput.add(whiteSpace + "%"+(nodeList.size())+" = call i32 @getch()");
                 }
                 else if(linkFunction.equals("putint")){
                     boolean check=false;
@@ -270,10 +369,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     //nodeList.add(node);
                    // tempNode=node;
                     if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
-                        output.add(whiteSpace + "call void @putint(i32 "+inputNode.getVal()+")");
+                        tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+inputNode.getVal()+")");
                     }
                     else{
-                        output.add(whiteSpace + "call void @putint(i32 %"+(inputNode.getId()+1)+")");
+                        tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 %"+(inputNode.getId()+1)+")");
                     }
                 }
                 else if(linkFunction.equals("putch")){
@@ -293,10 +392,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    // nodeList.add(node);
                    // tempNode=node;
                     if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
-                        output.add(whiteSpace + "call void @putch(i32 "+inputNode.getVal()+")");
+                        tempBlock.blockOutput.add(whiteSpace + "call void @putch(i32 "+inputNode.getVal()+")");
                     }
                     else{
-                        output.add(whiteSpace + "call void @putch(i32 %"+(inputNode.getId()+1)+")");
+                        tempBlock.blockOutput.add(whiteSpace + "call void @putch(i32 %"+(inputNode.getId()+1)+")");
                     }
                 }
                 break;
@@ -336,6 +435,24 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         else if(op.equals("%")){
             return "srem";
+        }
+        else if(op.equals("<=")){
+            return "sle";
+        }
+        else if(op.equals("<")){
+            return "slt";
+        }
+        else if(op.equals(">")){
+            return "sgt";
+        }
+        else if(op.equals(">=")){
+            return "sge";
+        }
+        else if(op.equals("==")){
+            return "eq";
+        }
+        else if(op.equals("!=")){
+            return "ne";
         }
         return null;
     }
@@ -390,10 +507,67 @@ public class Visitor extends  compileBaseVisitor<Void> {
         Node newNode=new Node(nodeList.size(),top+1,"exp",depth);
         tempNode=newNode;
         nodeList.add(newNode);
-        output.add(whiteSpace+"%"+(top+1)+" = "+OpEnum(op)+" i32 "+left+", "+right);
+        tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" = "+OpEnum(op)+" i32 "+left+", "+right);
         return;
     }
 
+    public void CondDeal(Node leftNode,Node rightNode,String op){
+        if(OpEnum(op)==null){
+            return;
+        }
+        String left=null;
+        String right=null;
+        String opType;
+        if(leftNode==null){
+            left="0";
+        }
+        else{
+            if(leftNode.getType().equals("num")){
+                left=String.valueOf(leftNode.getVal());
+            }
+            else if(leftNode.getType().equals("exp")){
+                left="%"+String.valueOf(leftNode.getVal());
+            }
+            else if(leftNode.getType().equals("constVar")){
+                left=String.valueOf(leftNode.getVal());
+            }
+            else if(leftNode.getType().equals("intVar")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
+            else if(leftNode.getType().equals("load")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
+        }
+        if(rightNode.getType().equals("num")){
+            right=String.valueOf(rightNode.getVal());
+        }
+        else if(rightNode.getType().equals("exp")){
+            right="%"+String.valueOf(rightNode.getVal());
+        }
+        else if(rightNode.getType().equals("intVar")){
+            right="%"+String.valueOf(rightNode.getId());
+        }
+        else if(rightNode.getType().equals("constVar")){
+            right=String.valueOf(rightNode.getVal());
+        }
+        else if(rightNode.getType().equals("load")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        int top=0;
+        int depth=0;
+        for(int i=0;i<nodeList.size();i++){
+            if(nodeList.get(i).getType().equals("exp")){
+
+                depth=nodeList.get(i).getDepth();
+            }
+        }
+        top=nodeList.size();
+        Node newNode=new Node(nodeList.size(),top+1,"icmp",depth);
+        tempNode=newNode;
+        nodeList.add(newNode);
+        tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" = icmp "+OpEnum(op)+" i32 "+left+", "+right);
+        return;
+    }
     @Override
     public Void visitBType(compileParser.BTypeContext ctx) {
         return super.visitBType(ctx);
@@ -481,7 +655,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
             nodeList.add(node);
             varList.add(var);
-            output.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
         }
         else if(ctx.children.size()==3){
             int top=nodeList.size();
@@ -490,14 +664,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
             Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
             varList.add(var);
             nodeList.add(node);
-            output.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
             visit(ctx.initval());
             Node store=tempNode;
             if(store.getType()=="num"||store.getType()=="constVar"){
-                output.add(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+                tempBlock.blockOutput.add(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
             }
             else{
-                output.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
+                tempBlock.blockOutput.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
             }
 
         }
@@ -533,7 +707,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     int top=nodeList.size();
                     Node node=new Node(nodeList.size(),0,name+"load","load",0);
                     tempNode=node;
-                    output.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
+                    tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
                     nodeList.add(node);
                     check=true;
                     break;
@@ -553,22 +727,86 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitRelExp(compileParser.RelExpContext ctx) {
-        return super.visitRelExp(ctx);
+        if(ctx.children.size()>1){
+            visit(ctx.children.get(0));
+            Node left=tempNode;
+            visit(ctx.children.get(2));
+            Node right=tempNode;
+            //visit(ctx.children.get(1));
+            String optype=ctx.children.get(1).getText();
+            CondDeal(left,right,optype);
+            //step++;
+        }
+        else if(ctx.children.size()==1){
+            visit(ctx.addExp(0));
+        }
+        return null;
+        //return super.visitRelExp(ctx);
     }
 
     @Override
     public Void visitEqExp(compileParser.EqExpContext ctx) {
-        return super.visitEqExp(ctx);
+        visit(ctx.relExp(0));
+        Node left=tempNode;
+
+
+        boolean check=true;
+        for(int i=1;i<ctx.relExp().size();i++)
+            {
+                visit(ctx.relExp(i));
+                Node right=tempNode;
+                String symbol=ctx.Condop2(i-1).getText();
+                CondDeal(left,right,symbol);
+                left=right;
+                check=false;
+                step++;
+            }
+        if(check){
+            check=false;
+            if(left.getType()=="num"||left.getType()=="constVar"){
+                tempBlock.blockOutput.add("    %"+step+"= icmp ne i32 0, "+left.getVal()+"\n");
+            }
+            else{
+                tempBlock.blockOutput.add("    %"+step+"= icmp ne i32 0, "+left.getId()+"\n");
+            }
+
+        }
+        return null;
     }
 
     @Override
     public Void visitLandExp(compileParser.LandExpContext ctx) {
-        return super.visitLandExp(ctx);
+        List<Block>blocks=new ArrayList<>();
+        for(int i=0;i<ctx.eqExp().size();i++)
+        {
+            tempBlock=createnewblock(tempBlock,true);
+            visit(ctx.eqExp(i));
+            tempBlock.end=nodeList.size()-1;
+            tempBlock.trueblock=step;
+            blocks.add(tempBlock);
+        }
+        Block dest=createnewblock(tempBlock,false);
+        for(Block i:blocks)
+            i.falseblock=dest.start;
+        landBlockList=blocks;
+        return null;
     }
 
     @Override
     public Void visitLorExp(compileParser.LorExpContext ctx) {
-        return super.visitLorExp(ctx);
+        List<orblock>orblockList=new ArrayList<>();
+        for(int i=0;i<ctx.landExp().size();i++)
+        {
+            orblock orblock_List=new orblock();
+            visit(ctx.landExp(i));
+            orblock_List.blockList= landBlockList;
+            orblockList.add(orblock_List);
+        }
+        Block dest=createnewblock(tempBlock,false);
+        orblocksList=orblockList;
+        return null;
     }
+
+
 
 }

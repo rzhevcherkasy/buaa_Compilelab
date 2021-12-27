@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
             String input = "" ;
-          File infile = new File(args[0]);
+         File infile = new File(args[0]);
        // File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
             try{
                 Scanner sc = new Scanner(infile);
@@ -78,5 +78,12 @@ public class Main {
             for(int j=0;j<visitor.output.size();j++){
                 System.out.println(visitor.output.get(j));
             }
+             for(int j=0;j<visitor.BlockList.size();j++){
+                 System.out.println("a"+visitor.BlockList.get(j).start+":");
+                 for(int k=0;k<visitor.BlockList.get(j).blockOutput.size();k++){
+                     System.out.println(visitor.BlockList.get(j).blockOutput.get(k));
+                 }
+             }
+        System.out.println("}");
     }
 }
