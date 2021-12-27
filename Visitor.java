@@ -52,7 +52,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             BlockList.add(new Block());
             step++;
             tempBlock=BlockList.get(0);
-            output.add("    br label %"+"a0");
+           // output.add("    br label %"+"a0");
             tempBlock.type="func";
             tempBlock.set=false;
             tempBlock.end=0;
@@ -67,11 +67,11 @@ public class Visitor extends  compileBaseVisitor<Void> {
      */
     /**
      *  @Override public Void visitIdent(compileParser.IdentContext ctx) {
-        if (ctx.MAIN().getText().equals("main"))
-        {
-            System.out.print("@main");
-        }
-        return null;
+    if (ctx.MAIN().getText().equals("main"))
+    {
+    System.out.print("@main");
+    }
+    return null;
     }*/
     /**
      * {@inheritDoc}
@@ -80,21 +80,21 @@ public class Visitor extends  compileBaseVisitor<Void> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitBlock(compileParser.BlockContext ctx) {
-       // System.out.println("{");
+        // System.out.println("{");
         for(int i=0;i<ctx.children.size();i++){
             visit(ctx.children.get(i));
         }
         //visit(ctx.children.get(1));
-       // System.out.println("}");
+        // System.out.println("}");
         //tempBlock.blockOutput.add("}");
         return null;
     }
     Block createnewblock(Block parblock,boolean a) {
         if(!parblock.set)
             parblock.blockOutput.add("    br label %"+"a"+step+'\n');
-            BlockList.add(new Block(tempBlock, step++));
-            tempBlock = BlockList.get(BlockList.size() - 1);
-            tempBlock.set=a;
+        BlockList.add(new Block(tempBlock, step++));
+        tempBlock = BlockList.get(BlockList.size() - 1);
+        tempBlock.set=a;
         return tempBlock;
     }
     void dealorlist(List<orblock>orblockList)
@@ -124,7 +124,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
      */
     @Override public Void visitStmt(compileParser.StmtContext ctx) {
         if (ctx.children.size() == 4) {
-           // visit(ctx.lval());
+            // visit(ctx.lval());
             Var tempVar=null;
             for(int i=0;i<varList.size();i++){
                 if(ctx.children.get(0).getText().equals(varList.get(i).getName())){
@@ -202,12 +202,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
             Node retNode = tempNode;
             if (retNode.getType().equals("num")) {
-                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + retNode.getVal());
+                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + retNode.getVal()+"\n");
             } else {
-                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1));
+                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1)+"\n");
             }
+            tempBlock.flag=1;
             //  System.out.print(dealNum(ctx.Number().getText()));
-          //  System.out.println(";");
+            //  System.out.println(";");
         }
 
         return null;
@@ -365,9 +366,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
                     //output.addFirst("declare void @putint(i32)");
                     Node inputNode=tempNode;
-                   // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
                     //nodeList.add(node);
-                   // tempNode=node;
+                    // tempNode=node;
                     if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
                         tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+inputNode.getVal()+")");
                     }
@@ -386,11 +387,11 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     if(!check){
                         output.addFirst("declare void @putch(i32)");
                     }
-                   // output.addFirst("declare void @putch(i32)");
+                    // output.addFirst("declare void @putch(i32)");
                     Node inputNode=tempNode;
-                   // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
-                   // nodeList.add(node);
-                   // tempNode=node;
+                    // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
+                    // nodeList.add(node);
+                    // tempNode=node;
                     if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
                         tempBlock.blockOutput.add(whiteSpace + "call void @putch(i32 "+inputNode.getVal()+")");
                     }
@@ -405,7 +406,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     }
 
     @Override
-        public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
+    public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
         if(ctx.children.size()==1){      //number/lval
             visit(ctx.children.get(0));
         }
@@ -470,7 +471,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("exp")){
                 left="%"+String.valueOf(leftNode.getVal());
             }
-           else if(leftNode.getType().equals("constVar")){
+            else if(leftNode.getType().equals("constVar")){
                 left=String.valueOf(leftNode.getVal());
             }
             else if(leftNode.getType().equals("intVar")){
@@ -490,7 +491,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             right="%"+String.valueOf(rightNode.getId());
         }
         else if(rightNode.getType().equals("constVar")){
-           right=String.valueOf(rightNode.getVal());
+            right=String.valueOf(rightNode.getVal());
         }
         else if(rightNode.getType().equals("load")){
             right="%"+String.valueOf(rightNode.getId()+1);
@@ -599,9 +600,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
     public Void visitConstDef(compileParser.ConstDefContext ctx) {
         if(ctx.children.size()==1){    //没有初始化
             int constNum=dealNum(ctx.children.get(0).getText());
-           // Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"constVar",0);
+            // Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"constVar",0);
             //nodeList.add(node);
-           // System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            // System.out.println(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
             Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
             varList.add(var);
         }
@@ -620,8 +621,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Node node=new Node(nodeList.size(),constNum,ctx.children.get(0).getText(),"constVar",0);
                 Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
                 varList.add(var);
-               // nodeList.add(node);
-               // System.out.println(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+                // nodeList.add(node);
+                // System.out.println(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
             }
             else{
                 System.exit(3);  //需要改
@@ -650,7 +651,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     public Void visitVarDef(compileParser.VarDefContext ctx) {
         if(ctx.children.size()==1){    //没有初始化
             int top=nodeList.size();
-          //  System.out.println("var def:"+ctx.children.get(0).getText());
+            //  System.out.println("var def:"+ctx.children.get(0).getText());
             Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
             Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
             nodeList.add(node);
@@ -660,7 +661,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else if(ctx.children.size()==3){
             int top=nodeList.size();
             Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
-          //  System.out.println("var def:"+ctx.children.get(0).getText());
+            //  System.out.println("var def:"+ctx.children.get(0).getText());
             Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,nodeList.size()+1);
             varList.add(var);
             nodeList.add(node);
@@ -675,7 +676,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             }
 
         }
-       // System.out.println("22323");
+        // System.out.println("22323");
         return null;
     }
 
@@ -752,15 +753,15 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
         boolean check=true;
         for(int i=1;i<ctx.relExp().size();i++)
-            {
-                visit(ctx.relExp(i));
-                Node right=tempNode;
-                String symbol=ctx.Condop2(i-1).getText();
-                CondDeal(left,right,symbol);
-                left=right;
-                check=false;
-                step++;
-            }
+        {
+            visit(ctx.relExp(i));
+            Node right=tempNode;
+            String symbol=ctx.Condop2(i-1).getText();
+            CondDeal(left,right,symbol);
+            left=right;
+            check=false;
+            step++;
+        }
         if(check){
             check=false;
             if(left.getType()=="num"||left.getType()=="constVar"){

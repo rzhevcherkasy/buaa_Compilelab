@@ -1,14 +1,18 @@
 int main() {
-    int a, b, c = 1, d;
-    int result;
+    int a;
     a = 5;
-    b = 5;
-    d = -2;
-    result = 2;
-    if (a + b == 9 || a - b == 0 && result != 4)
-        result = result + 3;
-    else if (c + d != -1 || (result + 1) % 2 == 1)
-        result = result + 4;
-    putint(result);
+    int b;
+    b = 10;
+    if (a == 6 || b == 0xb) {
+        return a;
+    } else {
+        if (b == 10 && a == 1)
+            a = 25;
+        else if (b == 10 && a == -5)
+            a = a + 15;
+        else
+            a = -+a;
+    }
+    putint(a);
     return 0;
 }
