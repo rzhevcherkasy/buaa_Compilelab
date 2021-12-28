@@ -320,7 +320,32 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 visit(ctx.children.get(1));
                 Node right=tempNode;
                 String opType=ctx.unaryOp().getText();
-                OpDeal(null,right,opType);
+                if(opType.equals("!")){
+                    if(right.getType().equals("num")) {
+                        Node node=new Node(nodeList.size(),nodeList.size(),"icmp",0);
+                        nodeList.add(node);
+                        tempBlock.blockOutput.add("    %"+nodeList.size()+" = icmp eq i32 "+right.getId()+", 0\n");
+                        //step+=1;
+                        Node Anode=new Node(nodeList.size(),nodeList.size()+1,"zext",0);
+                        nodeList.add(Anode);
+                        tempBlock.blockOutput.add("    %" + nodeList.size() + "= zext i1 %"+(nodeList.size()-1)+" to i32"+'\n');
+                        tempNode=Anode;
+                        //System.out.println("    %" + curfuncblock.step + " = sub i32 0, " + info.num);
+                    }
+                    else {
+                        Node node=new Node(nodeList.size(),nodeList.size()+1,"icmp",0);
+                        node.geshi="i1";
+                        node.setType("exp");
+                        nodeList.add(node);
+                        tempBlock.blockOutput.add("    %" + nodeList.size() + " = icmp eq "+right.geshi+" 0, " + "%"+(right.getId()+1));
+                        tempNode=node;
+                    }
+
+//
+                }
+                else{
+                    OpDeal(null,right,opType);
+                }
                 break;
             }
             case 4->{               //自定义函数
@@ -773,10 +798,16 @@ public class Visitor extends  compileBaseVisitor<Void> {
         if(check){
             check=false;
             if(left.getType()=="num"||left.getType()=="constVar"){
-                tempBlock.blockOutput.add("    %"+step+"= icmp ne i32 0, "+left.getVal()+"\n");
+                Node node=new Node(nodeList.size(),nodeList.size()+1,"cmp",0);
+                nodeList.add(node);
+                tempNode=node;
+                tempBlock.blockOutput.add("    %"+nodeList.size()+"= icmp ne i32 0, "+left.getVal());
             }
             else{
-                tempBlock.blockOutput.add("    %"+step+"= icmp ne i32 0, "+left.getId()+"\n");
+                Node node=new Node(nodeList.size(),nodeList.size()+1,"cmp",0);
+                nodeList.add(node);
+                tempNode=node;
+                tempBlock.blockOutput.add("    %"+nodeList.size()+"= icmp ne i32 0, "+"%"+left.getId());
             }
 
         }

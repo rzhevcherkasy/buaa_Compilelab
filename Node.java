@@ -2,8 +2,9 @@ public class Node {
     private int id;   //主键
     private int val;  //数值 num是本身，exp是%i
     private String name;  //名字
-    private String type;  //类型 num,exp,intVar,constVar,load,call,icmp
+    private String type;  //类型 num,exp,intVar,constVar,load,call,icmp,zext
     private int depth;
+    public String geshi;
 
     public int getId() {
         return id;
@@ -47,6 +48,7 @@ public class Node {
         this.type = type;
         this.depth = depth;
         this.name=Integer.toString(val);
+        this.geshi="i32";
     }
 
     public Node(int id, int val, String name, String type, int depth) {
@@ -55,6 +57,7 @@ public class Node {
         this.name = name;
         this.type = type;
         this.depth = depth;
+        this.geshi="i32";
     }
 
     public void setDepth(int depth) {
