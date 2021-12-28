@@ -184,7 +184,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 left.set=true;
                 Block dest = createnewblock(tempBlock,false);
                 if(left.flag==0)
-                    left.output= left.output.concat("    br label %"+"a"+dest.start+'\n');
+                    left.blockOutput.add("    br label %"+"a"+dest.start+'\n');
                 for(int i=0;i<temporblockList.size();i++)
                 {
                     temporblockList.get(i).trueblock = leftjump;
@@ -198,15 +198,23 @@ public class Visitor extends  compileBaseVisitor<Void> {
             return null;
         }
         else {
-            visit(ctx.exp());
-
-            Node retNode = tempNode;
-            if (retNode.getType().equals("num")) {
-                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + retNode.getVal()+"\n");
-            } else {
-                tempBlock.blockOutput.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1)+"\n");
+            if(ctx.exp()==null)
+            {
+                tempBlock.blockOutput.add("    ret void" + "\n");
+                tempBlock.flag = 1;
             }
-            tempBlock.flag=1;
+
+            else{
+                visit(ctx.exp());
+                Node retNode = tempNode;
+                if (retNode.getType().equals("num")) {
+                    tempBlock.blockOutput.add(whiteSpace + "ret i32 " + retNode.getVal()+"\n");
+                } else {
+                    tempBlock.blockOutput.add(whiteSpace + "ret i32 " + "%" + (retNode.getId() + 1)+"\n");
+                }
+                tempBlock.flag=1;
+            }
+
             //  System.out.print(dealNum(ctx.Number().getText()));
             //  System.out.println(";");
         }
