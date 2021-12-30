@@ -330,6 +330,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         //step+=1;
                         Node Anode=new Node(nodeList.size(),nodeList.size()+1,"zext",0);
                         nodeList.add(Anode);
+
                         tempBlock.blockOutput.add("    %" + nodeList.size() + "= zext i1 %"+(nodeList.size()-1)+" to i32"+'\n');
                         tempNode=Anode;
                         //System.out.println("    %" + curfuncblock.step + " = sub i32 0, " + info.num);
@@ -339,6 +340,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         node.geshi="i1";
                         node.setType("exp");
                         nodeList.add(node);
+
                         tempBlock.blockOutput.add("    %" + nodeList.size() + " = icmp eq "+right.geshi+" 0, " + "%"+(right.getId()+1));
                         tempNode=node;
                     }
@@ -583,6 +585,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     }
 
     public void CondDeal(Node leftNode,Node rightNode,String op){
+
         if(OpEnum(op)==null){
             return;
         }
@@ -623,6 +626,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         else if(rightNode.getType().equals("load")){
             right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        else {
+            right="%"+String.valueOf(nodeList.size());
         }
         int top=0;
         int depth=0;
