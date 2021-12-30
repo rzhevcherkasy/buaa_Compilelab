@@ -4,9 +4,7 @@ import org.antlr.v4.runtime.Recognizer;
 
 public class DescriptiveErrorListener extends BaseErrorListener {
     public static DescriptiveErrorListener INSTANCE = new DescriptiveErrorListener();
-
     private static final boolean REPORT_SYNTAX_ERRORS = true;
-
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
                             int line, int charPositionInLine,
@@ -20,7 +18,8 @@ public class DescriptiveErrorListener extends BaseErrorListener {
         if (!sourceName.isEmpty()) {
             sourceName = String.format("%s:%d:%d: ", sourceName, line, charPositionInLine);
         }
-        System.exit(3);
+
         System.err.println(sourceName+"line "+line+":"+charPositionInLine+" "+msg);
+        System.exit(-1);
     }
 }
