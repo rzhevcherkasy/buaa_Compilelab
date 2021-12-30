@@ -8,22 +8,12 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
             String input = "" ;
-         //   File infile = new File(args[0]);
-        File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
+          File infile = new File(args[0]);
+        //File infile = new File("C:\\Users\\rzhevcherkasy\\Documents\\GitHub\\wzh_compile\\src\\a.txt");
             try{
                 Scanner sc = new Scanner(infile);
                 while(sc.hasNextLine()){
-
-                    String a=sc.nextLine();
-                    for(int i=0;i<a.length();i++)
-                    {
-                        //System.out.println("}");
-                        char c=a.charAt(i);
-                        String b=String.valueOf((char)c);
-                        input+=b;
-                    }
-                    input+='\n';
-//                    input +=sc.nextLine()+'\n';
+                    input +=sc.nextLine()+'\n';
                     //System.out.println(input);
                 }
                 sc.close();
@@ -73,25 +63,30 @@ public class Main {
 
             }
         //System.out.println(inputnew);
-            String inputnew2="";
-            for(i=0;i<inputnew.length();i++)
-            {
-                char c=inputnew.charAt(i);
-                String b=String.valueOf((char)c);
-                inputnew2+=b;
-            }
-            CharStream inputStream = CharStreams.fromString(inputnew2);
-//            System.out.println(inputStream);
-            labLexer lexer = new labLexer(inputStream);
+            CharStream inputStream = CharStreams.fromString(inputnew);
+            compileLexer lexer = new compileLexer(inputStream);
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-            labParser parser = new labParser(tokenStream);
+            compileParser parser = new compileParser(tokenStream);
             lexer.removeErrorListeners();
             lexer.addErrorListener(DescriptiveErrorListener.INSTANCE);
             parser.removeErrorListeners();
             parser.addErrorListener(DescriptiveErrorListener.INSTANCE);
-            ParseTree tree = parser.compunit();
+            ParseTree tree = parser.compUnit();
 
             Visitor visitor = new Visitor();
             visitor.visit(tree);
+            for(int j=0;j<visitor.output.size();j++){
+                System.out.println(visitor.output.get(j));
+            }
+             for(int j=0;j<visitor.BlockList.size();j++){
+                 if(j!=0){
+                    System.out.println("a"+visitor.BlockList.get(j).start+":");
+                  }
+                 //System.out.println("a"+visitor.BlockList.get(j).start+":");
+                 for(int k=0;k<visitor.BlockList.get(j).blockOutput.size();k++){
+                     System.out.println(visitor.BlockList.get(j).blockOutput.get(k));
+                 }
+             }
+        System.out.println("}");
     }
 }
