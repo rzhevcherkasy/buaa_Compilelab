@@ -834,7 +834,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             tempNode.setType("exp");
             //step++;
         }
-        if(check&&tempNode.getType()!="texp"){
+        if(check&&tempNode.getType()!="exp"){
             check=false;
             if(left.getType()=="num"||left.getType()=="constVar"){
                 Node node=new Node(nodeList.size(),nodeList.size()+1,"cmp",0);
