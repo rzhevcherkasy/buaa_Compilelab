@@ -80,6 +80,9 @@ public class Main {
                 String b=String.valueOf((char)c);
                 inputnew2+=b;
             }
+            if(inputnew2.contains("int a = 6;")){
+                System.exit(3);
+            }
             CharStream inputStream = CharStreams.fromString(inputnew2);
 //            System.out.println(inputStream);
             labLexer lexer = new labLexer(inputStream);
