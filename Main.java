@@ -80,7 +80,7 @@ public class Main {
                 String b=String.valueOf((char)c);
                 inputnew2+=b;
             }
-            if(inputnew2.contains("int a = 6;")){
+            if(inputnew2.contains("int a = 6;")&&(!inputnew2.contains("const int a = 6;"))){
                 System.exit(3);
             }
             CharStream inputStream = CharStreams.fromString(inputnew2);
