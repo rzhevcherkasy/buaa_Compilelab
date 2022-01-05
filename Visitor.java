@@ -851,6 +851,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Node node=new Node(tempFunction.nodeList.size(),constNum,ctx.children.get(0).getText(),"constVar",0);
                 Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
                 tempFunction.tempVarBlock.in.add(var);
+                if(tempFunction.name.equals("decl")){
+                    globalVar.add(var);
+                }
                 // nodeList.add(node);
                 // System.out.println(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
             }
