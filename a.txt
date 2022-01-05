@@ -1,15 +1,21 @@
+int one = 1;
+
 int main() {
-    int n = getint();
-    int i = 0, sum = 0;
-    while (i < n) {
-        if (i % 2 == 0) {
-            i = i + 1;
-            //continue;
+    int c = 2 + 2;
+    while (c < 75) {
+        int d;
+        d = 42;
+        while (c < 100) {
+            c = c + d;
+            if (c > 99) {
+                int e;
+                e = d * 2;
+                if (one == 1) {
+                    c = e * 2;
+                }
+            }
         }
-        i = i + 1;
-        sum = sum + i;
-        putint(sum);
-        putch(10);
     }
+    putint(c);
     return 0;
 }

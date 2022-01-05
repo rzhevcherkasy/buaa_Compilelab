@@ -1,7 +1,7 @@
 public class Var {
     private String name;  //名字
     private boolean ifConst;  //是否是const
-    private String type;  //目前只有int
+    private String type;  //int,globalInt
     private int val; //实际的数值
     private int block; //在哪个块里
     private int nodeId; //寄存器什么位置

@@ -10,6 +10,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     List<Block> tempBlockList=new ArrayList<>();
     List<Block> landBlockList=new ArrayList<>();  //lab4递归用的
     List<orblock> orblocksList=new ArrayList<>();  //lab4递归存值用的
+    List<Var> globalVar=new ArrayList<>();  //全局变量
 
     Function tempFunction;   //指针，指向当前的函数
     public LinkedList<String> output=new LinkedList<String>();
@@ -38,7 +39,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
         for(int j=0;j<output.size();j++){
             System.out.println(output.get(j));
         }
-        for(Function f:funcblockList) {
+        for(int w=0;w<funcblockList.size();w++) {
+            Function f=funcblockList.get(w);
             if(f.name.equals("func")&&f.blocks.get(0).blockOutput.size()>=1){
                 System.out.println("define dso_local i32 @main(){");
             }
@@ -52,7 +54,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
                 if(f.name.equals("func")&&f.blocks.get(0).blockOutput.size()>=1){
                     //System.out.println("define dso_local i32 @main(){");
-                    System.out.println("a"+a.start+":");
+                    if(w!=0){
+                        System.out.println("a"+a.start+":");
+                    }
                 }
                // if(f.returntype.equals("func")){
                     //System.out.println("define dso_local i32 @main(){");
@@ -139,6 +143,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         tempFunction.tempVarBlock.fathernode=fatherNode;  //添加父节点
        // fatherNode.childrennode.add(tempFunction.tempVarBlock);   //添加子节点
         tempFunction.tempVarBlock.in.addAll(fatherNode.in);
+        tempFunction.tempVarBlock.in.addAll(globalVar);
         tempFunction.tempVarBlock.out.addAll(fatherNode.out);
         for(int i=0;i<ctx.children.size();i++){
             visit(ctx.children.get(i));
@@ -279,7 +284,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 int from=tempFunction.blocks.size()-1;
                 Block leftblock=createnewblock(tempFunction.tempBlock,false);
                 visit(ctx.stmt(0));
-                tempFunction.tempBlock.blockOutput.add("    br label %" + start + '\n');
+                tempFunction.tempBlock.blockOutput.add("    br label %" + "a"+start + '\n');
                 tempFunction.tempBlock.set = true;
                 Block destblock = createnewblock(tempFunction.tempBlock, false);
                 tempFunction.tempVarBlock= parvarblock;
@@ -872,20 +877,33 @@ public class Visitor extends  compileBaseVisitor<Void> {
             tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
         }
         else if(ctx.children.size()==3){
-            int top=tempFunction.nodeList.size();
-            Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
-            //  System.out.println("var def:"+ctx.children.get(0).getText());
-            Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,tempFunction.nodeList.size()+1);
-            tempFunction.tempVarBlock.in.add(var);
-            tempFunction.nodeList.add(node);
-            tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
-            visit(ctx.initval());
-            Node store=tempNode;
-            if(store.getType()=="num"||store.getType()=="constVar"){
-                tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+            if(tempFunction.tempBlock.type.equals("decl")){
+                int top=tempFunction.nodeList.size();
+                Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"globalintVar",0);
+                Var var=new Var(ctx.children.get(0).getText(),false,"globalInt",0,0,tempFunction.nodeList.size()+1);
+                tempFunction.tempVarBlock.in.add(var);
+                globalVar.add(var);
+                tempFunction.nodeList.add(node);
+                visit(ctx.initval());
+                Node store=tempNode;
+                output.add("@"+ctx.children.get(0).getText() + " = dso_local global i32 " + tempNode.getVal() + '\n');
             }
             else{
-                tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
+                int top=tempFunction.nodeList.size();
+                Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
+                //  System.out.println("var def:"+ctx.children.get(0).getText());
+                Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,tempFunction.nodeList.size()+1);
+                tempFunction.tempVarBlock.in.add(var);
+                tempFunction.nodeList.add(node);
+                tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+                visit(ctx.initval());
+                Node store=tempNode;
+                if(store.getType()=="num"||store.getType()=="constVar"){
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+                }
+                else{
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
+                }
             }
 
         }
@@ -915,6 +933,17 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     check=true;
                     break;
                 }
+                else if(tempFunction.tempVarBlock.in.get(i).getType().equals("globalInt")){
+                   // Node loadNode=tempFunction.nodeList.get(nodeId-1);
+                    int top=tempFunction.nodeList.size();
+                    Var g_Var=tempFunction.tempVarBlock.in.get(i);
+                    Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
+                    tempNode=node;
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"@"+g_Var.getName());
+                    tempFunction.nodeList.add(node);
+                    check=true;
+                    break;
+                }
                 else{                                  //int
                     int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
                     Node loadNode=tempFunction.nodeList.get(nodeId-1);
@@ -928,9 +957,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
             }
         }
-        if(!check){
-            System.exit(7);
-        }
+        //if(!check){
+         //   System.exit(7);
+        //}
         return super.visitLval(ctx);
     }
 
@@ -1047,6 +1076,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         tempFunction.tempBlock=newbee;
         tempFunction.tempBlock.end=0;
         Varblock newVarBee=new Varblock();
+        newVarBee.in.addAll(globalVar);
         tempFunction.tempVarBlock=newVarBee;
         tempFunction.varblocks.add(newVarBee);
         tempFunction.tempBlock.type=type;
