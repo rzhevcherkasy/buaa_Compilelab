@@ -211,11 +211,23 @@ public class Visitor extends  compileBaseVisitor<Void> {
             }
             visit(ctx.exp());
             Node store = tempNode;
-            if (store.getType() == "num") {
-                tempFunction.tempBlock.blockOutput.add(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
-            } else {
-                tempFunction.tempBlock.blockOutput.add(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
+            if(tempVar.getType().equals("globalInt")){  //修改全局变量
+                if (store.getType() == "num") {
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "@" + tempVar.getName());
+                }
+                else {
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "@" + tempVar.getName());
+                }
             }
+            else{
+                if (store.getType() == "num") {
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace + "store i32 " + tempNode.getVal() + ", i32* " + "%" + tempVar.getNodeId());
+                }
+                else {
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace + "store i32 " + "%" + (tempNode.getId() + 1) + ", i32* " + "%" + tempVar.getNodeId());
+                }
+            }
+
         }
         else if(ctx.children.size()==2){  //exp';'
             visit(ctx.exp());
@@ -868,13 +880,25 @@ public class Visitor extends  compileBaseVisitor<Void> {
     @Override
     public Void visitVarDef(compileParser.VarDefContext ctx) {
         if(ctx.children.size()==1){    //没有初始化
-            int top=tempFunction.nodeList.size();
-            //  System.out.println("var def:"+ctx.children.get(0).getText());
-            Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
-            Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,tempFunction.nodeList.size()+1);
-            tempFunction.nodeList.add(node);
-            tempFunction.tempVarBlock.in.add(var);
-            tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            if(tempFunction.tempBlock.type.equals("decl")){  //全局变量
+                int top=tempFunction.nodeList.size();
+                Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"globalintVar",0);
+                Var var=new Var(ctx.children.get(0).getText(),false,"globalInt",0,0,tempFunction.nodeList.size()+1);
+                tempFunction.tempVarBlock.in.add(var);
+                globalVar.add(var);
+                tempFunction.nodeList.add(node);
+                output.add("@"+ctx.children.get(0).getText() + " = dso_local global i32 " + 0 + '\n');
+            }
+            else{
+                int top=tempFunction.nodeList.size();
+                //  System.out.println("var def:"+ctx.children.get(0).getText());
+                Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"intVar",0);
+                Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,tempFunction.nodeList.size()+1);
+                tempFunction.nodeList.add(node);
+                tempFunction.tempVarBlock.in.add(var);
+                tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
+            }
+
         }
         else if(ctx.children.size()==3){
             if(tempFunction.tempBlock.type.equals("decl")){
@@ -900,6 +924,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Node store=tempNode;
                 if(store.getType()=="num"||store.getType()=="constVar"){
                     tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+tempNode.getVal()+", i32* "+"%"+(top+1));
+                }
+                else if(store.getType()=="globalintVar"){
+                    tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"@"+store.getName());
                 }
                 else{
                     tempFunction.tempBlock.blockOutput.add(whiteSpace+"store i32 "+"%"+(tempNode.getId()+1)+", i32* "+"%"+(top+1));
