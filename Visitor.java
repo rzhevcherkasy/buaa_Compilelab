@@ -434,8 +434,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else{
             visit(ctx.children.get(0));
             Node left=tempNode;
+            //System.out.print(tempNode.getType());
             visit(ctx.children.get(2));
             Node right=tempNode;
+            //System.out.println(tempNode.getType());
             visit(ctx.children.get(1));
             String optype=ctx.children.get(1).getText();
             OpDeal(left,right,optype);
@@ -701,6 +703,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
             else if(leftNode.getType().equals("load")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
+            else if(leftNode.getType().equals("call")){
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
         }
