@@ -325,7 +325,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     }
                     if(now.stage==1) {
                         now.stage = 2;
-                        now.blockOutput.add("    br label %" + destjump + '\n');
+                        now.blockOutput.add("    br label %" + "a"+destjump + '\n');
                     }
                 }
             }
