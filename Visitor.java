@@ -229,7 +229,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             }
 
         }
-        else if(ctx.children.size()==2){  //exp';'
+        else if(ctx.children.size()==2&&ctx.exp()!=null){  //exp';'
             visit(ctx.exp());
         }
         else if(ctx.children.get(0).getText().equals("if"))
@@ -325,7 +325,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     }
                     if(now.stage==1) {
                         now.stage = 2;
-                        now.output = now.output.concat("    br label %" + destjump + '\n');
+                        now.blockOutput.add("    br label %" + destjump + '\n');
                     }
                 }
             }
