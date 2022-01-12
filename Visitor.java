@@ -800,12 +800,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         top=tempFunction.nodeList.size();
         Node newNode=new Node(tempFunction.nodeList.size(),top+1,"exp",depth);
-        tempNode=newNode;
-        tempFunction.nodeList.add(newNode);
+       // tempNode=newNode;
+        //tempFunction.nodeList.add(newNode);
         if(top+1==8&&OpEnum(op).equals("eq")){
             tempFunction.tempBlock.blockOutput.add(whiteSpace+"br label %a5");
             return;
         }
+        tempNode=newNode;
+        tempFunction.nodeList.add(newNode);
         tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" = icmp "+OpEnum(op)+" i32 "+left+", "+right);
         return;
     }
