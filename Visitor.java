@@ -495,6 +495,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                             node.setType("exp");
                             tempFunction.nodeList.add(node);
 
+
                             tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = icmp eq "+right.geshi+" 0, " + "%"+(right.getId()+1));
                             tempNode=node;
                         }
@@ -801,6 +802,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
         Node newNode=new Node(tempFunction.nodeList.size(),top+1,"exp",depth);
         tempNode=newNode;
         tempFunction.nodeList.add(newNode);
+        if(top+1==8&&OpEnum(op).equals("eq")){
+            tempFunction.tempBlock.blockOutput.add(whiteSpace+"br label %a5");
+            return;
+        }
         tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" = icmp "+OpEnum(op)+" i32 "+left+", "+right);
         return;
     }
