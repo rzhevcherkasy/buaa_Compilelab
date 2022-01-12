@@ -971,7 +971,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     public Void visitLval(compileParser.LvalContext ctx) {
         String name=ctx.getText();
         boolean check=false;
-        for(int i=0;i<tempFunction.tempVarBlock.in.size();i++){
+        for(int i=tempFunction.tempVarBlock.in.size()-1;i>=0;i--){
             if(tempFunction.tempVarBlock.in.get(i).getName().equals(name)){
                 if(tempFunction.tempVarBlock.in.get(i).isIfConst()==true){     //const
                     Node node=new Node(-1,tempFunction.tempVarBlock.in.get(i).getVal(),name,"constVar",0);
