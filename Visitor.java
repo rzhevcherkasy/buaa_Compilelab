@@ -970,7 +970,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else
             {
 
-                Var arrayVar=new Var(ctx.Ident().getText(),true,"global_array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+                Var arrayVar=new Var(ctx.Ident().getText(),false,"global_array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
                // tempFunction.tempVarBlock.in.add(arrayVar);
                 tempFunction.tempVarBlock.in.add(arrayVar);
                 if(tempFunction.name.equals("decl")){
