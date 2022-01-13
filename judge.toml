@@ -1,0 +1,9 @@
+# 一个示例
+[jobs.lab7]
+
+image = { source = "dockerfile", path = "." }
+
+run = [
+    "cat $input",
+    "java -cp .:./antlr-4.9.2-complete.jar Main $input >$ir" 
+]
