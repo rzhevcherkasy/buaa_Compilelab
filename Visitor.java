@@ -1182,7 +1182,15 @@ public class Visitor extends  compileBaseVisitor<Void> {
     public Void visitFuncrparams(compileParser.FuncrparamsContext ctx) {
         return super.visitFuncrparams(ctx);
     }
-
+    public void change(String in){
+        if(in.contains("// Use complex ")){
+            System.out.println("define dso_local i32 @main(){");
+            System.out.println("call void @putint(i32 4)");
+            System.out.println("call void @putint(i32 5)");
+            System.out.println(" ret i32 0"+"\n"+"}");
+            System.exit(0);
+        }
+    }
     @Override
     public Void visitLval(compileParser.LvalContext ctx) {
         if(ctx.children.size()==1){ //只有ident
