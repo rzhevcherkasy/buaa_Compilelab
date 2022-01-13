@@ -1250,7 +1250,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        if (now.getType().equals("num")) {
                            second = "" + now.getVal();
                        } else {
-                           second = "%" + now.getId();
+                           second = "%" + (now.getId()+1);
                        }
                        // String second = now.type.equals("num") ? "" + now.num : now.address;
                        if (i == 1&&tempFunction.name.equals("func")) {
@@ -1269,7 +1269,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        Node a = new Node(tempFunction.nodeList.size(), -1, "add", 0);
                        tempNode = a;
                        tempFunction.nodeList.add(a);
-                       tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = add i32 " + second + ",  %" + (tt+1));
+                       tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = add i32 " +second + ",  %" + (tt+1));
                        tt = tempFunction.nodeList.size() - 1;
                        last = now;
                    }
