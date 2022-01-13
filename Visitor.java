@@ -463,7 +463,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.children.get(1));
 
             String optype=ctx.children.get(1).getText();
-            OpDeal(left,right,optype);
+            if(tempFunction.name.equals("func")){
+                OpDeal(left,right,optype);
+            }
+
         }
         return null;
     }
@@ -481,7 +484,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             Node right=tempNode;
             visit(ctx.children.get(1));
             String optype=ctx.children.get(1).getText();
-            OpDeal(left,right,optype);
+            if(tempFunction.name.equals("func")){
+                OpDeal(left,right,optype);
+            }
         }
         return null;
     }
@@ -1248,12 +1253,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
                            second = "%" + now.getId();
                        }
                        // String second = now.type.equals("num") ? "" + now.num : now.address;
-                       if (i == 1) {
+                       if (i == 1&&tempFunction.name.equals("func")) {
                            Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
                            tempNode = a;
                            tempFunction.nodeList.add(a);
                            tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = mul i32 " + word.numlist.get(i) + ",  " + first);
-                       } else {
+                       } else if(tempFunction.name.equals("func")){
                            Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
                            tempNode = a;
                            tempFunction.nodeList.add(a);
