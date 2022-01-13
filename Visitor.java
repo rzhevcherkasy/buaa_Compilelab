@@ -5,6 +5,7 @@ import java.util.List;
 public class Visitor extends  compileBaseVisitor<Void> {
     //List<Node> nodeList=new LinkedList<Node>();
    // List<Var>  varList=new LinkedList<>();  func后弃用
+    Node lvalNode=null;
 
     List<Block> BlockList=new LinkedList<>();  //所有Block
     List<Block> tempBlockList=new ArrayList<>();
@@ -206,7 +207,21 @@ public class Visitor extends  compileBaseVisitor<Void> {
              //       break;
             //    }
             //}
-            tempVar=findVar(ctx.children.get(0).getText());
+            String needtoFind="";
+            if(ctx.children.get(0).getText().contains("[")){   //数组
+                visit(ctx.exp());
+                lvalNode=tempNode;
+                visit(ctx.lval());
+
+                //needtoFind=ctx.lval().Ident().getText();
+                return null;
+            }
+            else{
+                needtoFind=ctx.children.get(0).getText();
+            }
+            //System.out.println(ctx.lval().Ident().getText());
+            tempVar=findVar(needtoFind);
+           // System.out.println(ctx.children.get(0).getText());
             if(tempVar==null||tempVar.isIfConst()==true){
                 System.exit(4);
             }
@@ -915,8 +930,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitVarDef(compileParser.VarDefContext ctx) {
-        if(ctx.constExp()!=null){                   //数组
+        if(ctx.constExp().size()!=0&&ctx.children.size()>=2){                   //数组
             //System.out.println("jwgddwjgdw");
+
             String arrayname=ctx.Ident().getText();
             if (findVar(arrayname) != null)
                 System.exit(90);
@@ -943,6 +959,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 tempFunction.tempVarBlock.in.add(arrayVar);
                 //tempFunction.nodeList.add(arrayNode);
 
+            }
+            else
+            {
+                Var arrayVar=new Var(ctx.Ident().getText(),true,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+                tempFunction.tempVarBlock.in.add(arrayVar);
+               // words.add(new wordinfo("@" + arrayname, 0, a.Ident().getText(), "array",num,numbers));
+                if(ctx.initval()==null)
+                    System.out.println("@"+ctx.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer"+"\n");
             }
            // System.out.println("jwgddwjgdw");
             //else     //const用的
@@ -1134,7 +1158,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitLval(compileParser.LvalContext ctx) {
-        if(ctx.Ident()!=null&&ctx.children.size()==1){ //只有ident
+        if(ctx.children.size()==1){ //只有ident
             String name=ctx.getText();
             boolean check=false;
             for(int i=tempFunction.tempVarBlock.in.size()-1;i>=0;i--){
@@ -1176,8 +1200,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 visit(ctx.exp(i));
                 arrayNode.add(tempNode);
             }
+
             Var word=findVar(ctx.Ident().getText());  //找到word
-           if(word.getType().equals("array")) {
+            if(!word.getType().equals("array")){
+                Node node=new Node(tempFunction.nodeList.size(),0,"load","load",0);
+                tempFunction.nodeList.add(node);
+                tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+tempFunction.nodeList.size()+" = "+"load i32, i32* "+"%"+lvalNode.getId());
+            }
+             else if(word.getType().equals("array")) {
                //System.out.println("swswsws");
                int tt = 1, dest = 0;
                if (arrayNode.size() > word.numlist.size())
@@ -1246,7 +1276,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    tt = tempFunction.nodeList.size() - 1;
                    tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 " + first);
                    //curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = getelementptr i32, i32* %" + tt + ", i32 " + first + "\n");
-               } else if (arrayNode.size() > 1) {
+               }
+               else {
                    Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
                    tempFunction.nodeList.add(a);
                    tempNode = a;
@@ -1256,14 +1287,19 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    // curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = getelementptr i32, i32* %" + tt + ", i32 %" + dest + "\n");
                }
                if (arrayNode.size() == word.numlist.size()) {
-                   Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
-                   tempFunction.nodeList.add(a);
-                   tempNode = a;
+                   //Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
+                  // tempFunction.nodeList.add(a);
+                  // tempNode = a;
                    tt = tempFunction.nodeList.size() - 1;
-                   tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = load i32, i32* %" + tt);
-                   // curfuncblock.step += 1;
-                   // tt = curfuncblock.step - 1;
-                   // curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = load i32, i32* %" + tt + '\n');
+                   String ww="";
+                   if(lvalNode.getType().equals("num")){
+                       ww=lvalNode.getVal()+"";
+                   }
+                   else{
+                       ww=lvalNode.getId()+"";
+                   }
+                   tempFunction.tempBlock.blockOutput.add("    store i32 " + ww + ", i32* %" + (tt+1) );
+
                }
                //info.type="pointer";
                //info.address="%"+curfuncblock.step;
