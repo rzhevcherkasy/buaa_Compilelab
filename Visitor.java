@@ -662,7 +662,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.number());
         }
         else if(ctx.lval()!=null){
-             ifArray=false;
+
             visit(ctx.lval());
 
           //  System.out.println(tempNode.getId()+" "+tempNode.getType());
