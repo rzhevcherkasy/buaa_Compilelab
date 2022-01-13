@@ -191,9 +191,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
      */
     public Var findVar(String Varname){
         Var tempVar=null;
-        for(int i=0;i<tempFunction.tempVarBlock.in.size();i++){
+        for(int i=tempFunction.tempVarBlock.in.size()-1;i>=0;i--){
             if(tempFunction.tempVarBlock.in.get(i).getName().equals(Varname)){
                 tempVar=tempFunction.tempVarBlock.in.get(i);
+                break;
             }
         }
         return tempVar;
@@ -940,8 +941,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
             //System.out.println("jwgddwjgdw");
 
             String arrayname=ctx.Ident().getText();
-            if (findVar(arrayname) != null)
-                System.exit(90);
+            //if (findVar(arrayname) != null)
+             //   System.exit(90);
             int num=1;
             List<Integer>numbers=new ArrayList<>();
 //                int tianchong=a.Brackets().size()/2-a.constexp().size();
@@ -953,7 +954,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 num*=tempNode.getVal();
                 numbers.add(tempNode.getVal());
             }
-            //System.out.println("jwgddwjgdw");
+           // System.out.println("jwgddwjgdw");
             if(tempFunction.tempBlock.type.equals("func")) {
 
                 Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"array",0,"i32",num,numbers);
@@ -968,11 +969,17 @@ public class Visitor extends  compileBaseVisitor<Void> {
             }
             else
             {
+
                 Var arrayVar=new Var(ctx.Ident().getText(),true,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+               // tempFunction.tempVarBlock.in.add(arrayVar);
                 tempFunction.tempVarBlock.in.add(arrayVar);
-               // words.add(new wordinfo("@" + arrayname, 0, a.Ident().getText(), "array",num,numbers));
-                if(ctx.initval()==null)
-                    System.out.println("@"+ctx.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer"+"\n");
+                if(tempFunction.name.equals("decl")){
+                    globalVar.add(arrayVar);
+                }
+                if(ctx.initval()==null||ctx.initval().getText().equals("{}")){
+                    tempFunction.tempBlock.blockOutput.add("@"+ctx.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer");
+                }
+
             }
            // System.out.println("jwgddwjgdw");
             //else     //const用的
@@ -981,11 +988,15 @@ public class Visitor extends  compileBaseVisitor<Void> {
            //     if(a.initval()==null)
              //       curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("@"+a.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer"+"\n");
           //  }
-            if(ctx.initval()!=null)
+            if(ctx.initval()!=null&&!(ctx.initval().getText().equals("{}")))
             {
                 //System.out.println("jwgddwjgdw");
                 int index=0;
+               // System.out.println(arrayname);
                 Var array=findVar(arrayname); //得到array
+
+
+               // System.out.println(array.getName());
                 //List<element>mmp=new ArrayList<>();
                 //List<Integer> aa=new ArrayList<>();
                 List<Integer> map_num=new ArrayList<>();  //mmp_num
@@ -1003,6 +1014,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     //Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"getelementptr",0,"i32",num,numbers);
                 }
               //  System.out.println("sjswswswjgdw");
+
                 dealarray(ctx.initval(),1,array,nums,map_num,map_node);
                // System.out.println("sjswswswjgdw");
                 int d=0;
@@ -1063,7 +1075,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
                 if(tempFunction.tempBlock.type.equals("decl"))
                 {
-                    tempFunction.tempBlock.blockOutput.add(array.getName()+" = dso_local global [ " + num + "x i32]"+s+'\n');
+                  //  System.out.println(array.getName()+" = dso_local global [ " + num + "x i32]"+s);
+                    tempFunction.tempBlock.blockOutput.add("@"+array.getName()+" = dso_local global [ " + num + "x i32]"+s);
                 }
             }
         }
@@ -1253,7 +1266,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        last = now;
                    }
                    dest = tt;
-                   if(word.isIfConst()==true){
+                   if(word.isIfConst()==false){
                        Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
                        tempNode = a;
                        tempFunction.nodeList.add(a);
@@ -1265,7 +1278,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        Node a = new Node(tempFunction.nodeList.size(), -1, "getelementptr", 0);
                        tempNode = a;
                        tempFunction.nodeList.add(a);
-                       tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
+                       tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"@"+word.getName()+", i32 0, i32 0");
                    }
 //
 
