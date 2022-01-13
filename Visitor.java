@@ -883,6 +883,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitConstDef(compileParser.ConstDefContext ctx) {
+
         if(ctx.children.size()==1){    //没有初始化
             int constNum=dealNum(ctx.children.get(0).getText());
             // Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"constVar",0);
@@ -1217,11 +1218,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         else{     //说明是数组
             List<Node> arrayNode=new ArrayList<>();
+            boolean store=ifArray;
             for(int i=0;i<ctx.exp().size();i++){
+                ifArray=false;
                 visit(ctx.exp(i));
                 arrayNode.add(tempNode);
             }
-
+            ifArray=store;
             Var word=findVar(ctx.Ident().getText());  //找到word
 
                //System.out.println("swswsws");
