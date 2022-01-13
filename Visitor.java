@@ -6,7 +6,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     //List<Node> nodeList=new LinkedList<Node>();
    // List<Var>  varList=new LinkedList<>();  func后弃用
     Node lvalNode=null;
-    boolean  ifArray=true;  //load还是store array
+    boolean  ifArray=false;  //load还是store array
 
     List<Block> BlockList=new LinkedList<>();  //所有Block
     List<Block> tempBlockList=new ArrayList<>();
@@ -210,9 +210,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
             //}
             String needtoFind="";
             if(ctx.children.get(0).getText().contains("[")){   //数组
+                ifArray=false;
                 visit(ctx.exp());
+                ifArray=true;
                 lvalNode=tempNode;
                 visit(ctx.lval());
+                ifArray=false;
 
                 //needtoFind=ctx.lval().Ident().getText();
                 return null;
@@ -661,7 +664,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else if(ctx.lval()!=null){
              ifArray=false;
             visit(ctx.lval());
-            ifArray=true;
+
           //  System.out.println(tempNode.getId()+" "+tempNode.getType());
         }
         else{
@@ -1296,7 +1299,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                           }
                           tempFunction.tempBlock.blockOutput.add("    store i32 " + ww + ", i32* %" + (tt+1) );
                       }
-                       else{
+                       else if(ifArray==false){
                           tt = tempFunction.nodeList.size() - 1;
                           Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
                           tempFunction.nodeList.add(a);
