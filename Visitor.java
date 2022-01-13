@@ -1279,7 +1279,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        tempNode = a;
                        tempFunction.nodeList.add(a);
                        if(word.getType().equals("array")){
-                           tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(tt+1)+", i32 0, i32 0");
+                           tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
                        }
                        else{
                            tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"@"+word.getName()+", i32 0, i32 0");
