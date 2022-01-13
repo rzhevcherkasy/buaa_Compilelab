@@ -1218,7 +1218,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    if (last.getType().equals("num")) {
                        first = "" + last.getVal();
                    } else {
-                       first = "%" + last.getId();
+                       first = "%" + (last.getId()+1);
                    }
                    for (int i = 1; i < arrayNode.size(); i++) {
                        Node now = arrayNode.get(i);
@@ -1275,7 +1275,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    tempNode = a;
                    tt = tempFunction.nodeList.size() - 1;
                    tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 " + first);
-                   //curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = getelementptr i32, i32* %" + tt + ", i32 " + first + "\n");
+
                }
                else {
                    Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
@@ -1284,7 +1284,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    tt = tempFunction.nodeList.size() - 1;
                    tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 %" + (dest+1));
 
-                   // curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = getelementptr i32, i32* %" + tt + ", i32 %" + dest + "\n");
+
                }
                if (arrayNode.size() == word.numlist.size()) {
                    //Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
