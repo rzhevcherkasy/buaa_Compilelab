@@ -6,6 +6,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     //List<Node> nodeList=new LinkedList<Node>();
    // List<Var>  varList=new LinkedList<>();  func后弃用
     Node lvalNode=null;
+    boolean  ifArray=true;  //load还是store array
 
     List<Block> BlockList=new LinkedList<>();  //所有Block
     List<Block> tempBlockList=new ArrayList<>();
@@ -658,7 +659,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.number());
         }
         else if(ctx.lval()!=null){
+             ifArray=false;
             visit(ctx.lval());
+            ifArray=true;
           //  System.out.println(tempNode.getId()+" "+tempNode.getType());
         }
         else{
@@ -1078,6 +1081,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,tempFunction.nodeList.size()+1);
                 tempFunction.nodeList.add(node);
                 tempFunction.tempVarBlock.in.add(var);
+                tempNode=node;
                 tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
             }
 
@@ -1101,6 +1105,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Var var=new Var(ctx.children.get(0).getText(),false,"int",0,0,tempFunction.nodeList.size()+1);
                 tempFunction.tempVarBlock.in.add(var);
                 tempFunction.nodeList.add(node);
+                tempNode=node;
                 tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(top+1)+" ="+" alloca i32");
                 visit(ctx.initval());
                 Node store=tempNode;
@@ -1186,7 +1191,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         int top=tempFunction.nodeList.size();
                         Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
                         tempNode=node;
-                        tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
+                       tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
                         tempFunction.nodeList.add(node);
                         check=true;
                         break;
@@ -1202,12 +1207,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             }
 
             Var word=findVar(ctx.Ident().getText());  //找到word
-            if(!word.getType().equals("array")){
-                Node node=new Node(tempFunction.nodeList.size(),0,"load","load",0);
-                tempFunction.nodeList.add(node);
-                tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+tempFunction.nodeList.size()+" = "+"load i32, i32* "+"%"+lvalNode.getId());
-            }
-             else if(word.getType().equals("array")) {
+
                //System.out.println("swswsws");
                int tt = 1, dest = 0;
                if (arrayNode.size() > word.numlist.size())
@@ -1250,61 +1250,64 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        last = now;
                    }
                    dest = tt;
-               }
-              // if(word.fuzhi.equals("i32*"))
-               if(word.isIfConst()==true){
-                   Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
-                   tempNode = a;
-                   tempFunction.nodeList.add(a);
-                   tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()-1));
-               }
+                   if(word.isIfConst()==true){
+                       Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
+                       tempNode = a;
+                       tempFunction.nodeList.add(a);
+                       tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()-1));
+                   }
 
-               else
-               {
-                   Node a = new Node(tempFunction.nodeList.size(), -1, "getelementptr", 0);
-                   tempNode = a;
-                   tempFunction.nodeList.add(a);
-                   tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
-               }
+                   else
+                   {
+                       Node a = new Node(tempFunction.nodeList.size(), -1, "getelementptr", 0);
+                       tempNode = a;
+                       tempFunction.nodeList.add(a);
+                       tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
+                   }
 //
 
-               if (arrayNode.size() == 1) {
-                   //curfuncblock.step+=1;
-                   Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
-                   tempFunction.nodeList.add(a);
-                   tempNode = a;
-                   tt = tempFunction.nodeList.size() - 1;
-                   tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 " + first);
+                   if (arrayNode.size() == 1) {
+                       //curfuncblock.step+=1;
+                       Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
+                       tempFunction.nodeList.add(a);
+                       tempNode = a;
+                       tt = tempFunction.nodeList.size() - 1;
+                       tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 " + first);
 
-               }
-               else {
-                   Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
-                   tempFunction.nodeList.add(a);
-                   tempNode = a;
-                   tt = tempFunction.nodeList.size() - 1;
-                   tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 %" + (dest+1));
-
-
-               }
-               if (arrayNode.size() == word.numlist.size()) {
-                   //Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
-                  // tempFunction.nodeList.add(a);
-                  // tempNode = a;
-                   tt = tempFunction.nodeList.size() - 1;
-                   String ww="";
-                   if(lvalNode.getType().equals("num")){
-                       ww=lvalNode.getVal()+"";
                    }
-                   else{
-                       ww=lvalNode.getId()+"";
-                   }
-                   tempFunction.tempBlock.blockOutput.add("    store i32 " + ww + ", i32* %" + (tt+1) );
+                   else {
+                       Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
+                       tempFunction.nodeList.add(a);
+                       tempNode = a;
+                       tt = tempFunction.nodeList.size() - 1;
+                       tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 %" + (dest+1));
 
+
+                   }
+                   if (arrayNode.size() == word.numlist.size()) {
+                      if(ifArray==true){   //说明是定义
+                          tt = tempFunction.nodeList.size() - 1;
+                          String ww="";
+                          if(lvalNode.getType().equals("num")){
+                              ww=lvalNode.getVal()+"";
+                          }
+                          else{
+                              ww="%"+(lvalNode.getId()+1)+"";
+                          }
+                          tempFunction.tempBlock.blockOutput.add("    store i32 " + ww + ", i32* %" + (tt+1) );
+                      }
+                       else{
+                          tt = tempFunction.nodeList.size() - 1;
+                          Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
+                          tempFunction.nodeList.add(a);
+                          tempNode = a;
+                          tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = load i32, i32* %" + (tt+1));
+                      }
+
+                   }
                }
-               //info.type="pointer";
-               //info.address="%"+curfuncblock.step;
-               //curfuncblock.step+=1;
-           }
+
+
         }
         //if(!check){
          //   System.exit(7);
