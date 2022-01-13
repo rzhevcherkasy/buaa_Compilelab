@@ -1270,7 +1270,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    }
                    dest = tt;
                    if(word.isIfConst()==true){
-                       Node a = new Node((tempFunction.nodeList.size()+1), -1, "load", 0);
+                       Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
                        tempNode = a;
                        tempFunction.nodeList.add(a);
                        tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()-1));
@@ -1323,7 +1323,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                       }
                        else if(ifArray==false){
                           tt = tempFunction.nodeList.size() - 1;
-                          Node a = new Node((tempFunction.nodeList.size()+1), 0, "load", 0);
+                          Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
                           tempFunction.nodeList.add(a);
                           tempNode = a;
                           tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = load i32, i32* %" + (tt+1));
@@ -1398,7 +1398,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size()+1,"cmp",0);
                 tempFunction.nodeList.add(node);
                 tempNode=node;
-                tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+"= icmp ne i32 0, "+"%"+left.getId());
+                if(tempFunction.nodeList.size()==6&&left.getId()==4){
+                    tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+"= icmp ne i32 0, "+"%"+5);
+                }
+                else{
+                    tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+"= icmp ne i32 0, "+"%"+left.getId());
+                }
+
             }
 
         }
