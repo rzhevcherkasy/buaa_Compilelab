@@ -1,5 +1,5 @@
 # 一个示例
-[jobs.lab6]
+[jobs.lab7]
 
 image = { source = "dockerfile", path = "." }
 

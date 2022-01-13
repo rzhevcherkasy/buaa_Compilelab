@@ -24,6 +24,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     List<Function>funcblockList=new ArrayList<>();
 
     @Override public Void visitCompUnit(compileParser.CompUnitContext ctx) {
+        System.out.println("declare void @memset(i32*, i32, i32)");
         Function_initial("decl");
         if(ctx.decl()!=null){
             for(int i=0;i<ctx.decl().size();i++){
@@ -434,11 +435,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else{
             visit(ctx.children.get(0));
             Node left=tempNode;
+          //  System.out.println(left.getType()+""+left.getType());
             //System.out.print(tempNode.getType());
             visit(ctx.children.get(2));
             Node right=tempNode;
             //System.out.println(tempNode.getType());
             visit(ctx.children.get(1));
+
             String optype=ctx.children.get(1).getText();
             OpDeal(left,right,optype);
         }
@@ -453,6 +456,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         else{
             visit(ctx.children.get(0));
             Node left=tempNode;
+
             visit(ctx.children.get(2));
             Node right=tempNode;
             visit(ctx.children.get(1));
@@ -468,6 +472,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
         switch (ctx.children.size()) {
             case 1-> {                           //primaryExp
                 visit(ctx.primaryExp());
+               // nodeinfo info=(nodeinfo) visit(ctx.primaryexp());
+
                 break;
             }
             case 2-> {                         //unaryOp unaryExp
@@ -633,12 +639,17 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitPrimaryExp(compileParser.PrimaryExpContext ctx) {
-        if(ctx.children.size()==1){      //number/lval
-            visit(ctx.children.get(0));
+        if(ctx.number()!=null){
+            visit(ctx.number());
+        }
+        else if(ctx.lval()!=null){
+            visit(ctx.lval());
+          //  System.out.println(tempNode.getId()+" "+tempNode.getType());
         }
         else{
             visit(ctx.exp());
         }
+        //System.out.println(tempNode.getId()+" "+tempNode.getType());
         return null;
     }
 
@@ -709,6 +720,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("call")){
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
+            else if(leftNode.getType().equals("array")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
         }
         if(rightNode.getType().equals("num")){
             right=String.valueOf(rightNode.getVal());
@@ -723,6 +737,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             right=String.valueOf(rightNode.getVal());
         }
         else if(rightNode.getType().equals("load")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        else if(rightNode.getType().equals("array")){
             right="%"+String.valueOf(rightNode.getId()+1);
         }
         if(left==null||right==null){
@@ -898,7 +915,129 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitVarDef(compileParser.VarDefContext ctx) {
-        if(ctx.children.size()==1){    //没有初始化
+        if(ctx.constExp()!=null){                   //数组
+            //System.out.println("jwgddwjgdw");
+            String arrayname=ctx.Ident().getText();
+            if (findVar(arrayname) != null)
+                System.exit(90);
+            int num=1;
+            List<Integer>numbers=new ArrayList<>();
+//                int tianchong=a.Brackets().size()/2-a.constexp().size();
+//                if(tianchong>0)
+//                    numbers.add(0);
+            for(int a=0;a<ctx.constExp().size();a++)
+            {
+                visit(ctx.constExp(a));
+                num*=tempNode.getVal();
+                numbers.add(tempNode.getVal());
+            }
+            //System.out.println("jwgddwjgdw");
+            if(tempFunction.tempBlock.type.equals("func")) {
+
+                Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"array",0,"i32",num,numbers);
+                tempFunction.nodeList.add(arrayNode);
+                tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = alloca [" + num + "x i32]");
+               // int id, int val, String name, String type, int depth, String geshi, int length, List<Integer> numlist
+                tempNode=arrayNode;
+                Var arrayVar=new Var(ctx.Ident().getText(),false,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+                tempFunction.tempVarBlock.in.add(arrayVar);
+                //tempFunction.nodeList.add(arrayNode);
+
+            }
+           // System.out.println("jwgddwjgdw");
+            //else     //const用的
+           // {
+             //   words.add(new wordinfo("@" + wordname, 0, a.Ident().getText(), "array",num,numbers));
+           //     if(a.initval()==null)
+             //       curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("@"+a.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer"+"\n");
+          //  }
+            if(ctx.initval()!=null)
+            {
+                //System.out.println("jwgddwjgdw");
+                int index=0;
+                Var array=findVar(arrayname); //得到array
+                //List<element>mmp=new ArrayList<>();
+                //List<Integer> aa=new ArrayList<>();
+                List<Integer> map_num=new ArrayList<>();  //mmp_num
+                List<Integer> nums=new ArrayList<>(); //aa
+                List<Node> map_node=new ArrayList<>();  //map_node
+              //  System.out.println("jwgddwjgdw");
+                if(tempFunction.tempBlock.type.equals("func")) {
+
+                    Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"getelementptr",0,"i32",num,numbers);
+                    tempFunction.nodeList.add(arrayNode);
+                    index=tempFunction.nodeList.size();
+                    tempNode=arrayNode;
+                    tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() +" = getelementptr [" + array.length + " x i32],[" + array.length + " x i32]* " + "%"+(array.getNodeId()-1) + ", i32 0, i32 0" );
+                    tempFunction.tempBlock.blockOutput.add("    call void @memset(i32* %" + tempFunction.nodeList.size()+ ", i32 0, i32 " + 4*array.length + ")");
+                    //Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"getelementptr",0,"i32",num,numbers);
+                }
+              //  System.out.println("sjswswswjgdw");
+                dealarray(ctx.initval(),1,array,nums,map_num,map_node);
+               // System.out.println("sjswswswjgdw");
+                int d=0;
+                //System.out.println("jwgddwjgdw");
+                Integer last=-1;
+                String s="[";
+                for (int u=0;u<map_node.size();u++) {
+                    Integer addr= map_num.get(u);
+                    Node va=map_node.get(u);
+                    //nodeinfo value=entry.value;
+                    String first;
+                  //  String first=value.type.equals("num")?""+value.num:value.address;
+                    if (va.getType().equals("num")) {
+                        first = "" + va.getVal();
+                    } else {
+                        first = "%" + va.getId();
+                    }
+                    if(tempFunction.tempBlock.type.equals("func")) {
+                        Node a=new Node(tempFunction.nodeList.size(),0,"getelementptr",0);
+                        tempFunction.nodeList.add(a);
+                        tempNode=a;
+                        tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + index + ", i32 " + addr );
+                        tempFunction.tempBlock.blockOutput.add("    store i32 " +  first + ", i32 *%" + tempFunction.nodeList.size() );
+                    }
+                    else{
+                        d=addr-last-1;
+                        if(d>0)
+                        {
+                            for(int i=1;i<=d;i++)
+                                s+="i32 0,";
+//
+                        }
+
+                        s+=" i32 "+va.getVal()+",";
+                    }
+                    last=addr;
+                }
+
+
+                if(s.equals("["))
+                    s=" zeroinitializer ";
+                else
+                {
+                    d=array.length-1-last;
+                    if(d>0)
+                    {
+                        for(int i=1;i<=d;i++)
+                            s+="i32 0,";
+//
+                    }
+                    String fuzhinew="";
+                    for(int i=0;i<s.length()-1;i++)
+                    {
+                        fuzhinew+=s.charAt(i);
+                    }
+                    s=fuzhinew;
+                    s+="]";
+                }
+                if(tempFunction.tempBlock.type.equals("decl"))
+                {
+                    tempFunction.tempBlock.blockOutput.add(array.getName()+" = dso_local global [ " + num + "x i32]"+s+'\n');
+                }
+            }
+        }
+        else if(ctx.children.size()==1){    //没有初始化
             if(tempFunction.tempBlock.type.equals("decl")){  //全局变量
                 int top=tempFunction.nodeList.size();
                 Node node=new Node(tempFunction.nodeList.size(),0,ctx.children.get(0).getText(),"globalintVar",0);
@@ -956,6 +1095,32 @@ public class Visitor extends  compileBaseVisitor<Void> {
         // System.out.println("22323");
         return null;
     }
+    void dealarray(compileParser.InitvalContext ctx, int deep, Var word, List<Integer>nums, List<Integer> map_num,List<Node> map_node)
+    {
+        int i=0;
+        for(compileParser.InitvalContext initval:ctx.initval())
+        {
+            nums.add(i);
+            if(deep<word.numlist.size()) {
+                dealarray(initval, deep + 1, word, nums,map_num,map_node);
+            }
+
+            else{
+                int num=nums.get(0);
+                for(int j=1;j<word.numlist.size();j++)
+                {
+                    num=num*word.numlist.get(j)+nums.get(j);
+                }
+                visit(initval.exp());
+                map_node.add(tempNode);
+                map_num.add(num);
+              //  nodeinfo info=(nodeinfo) visit(initval.exp());
+             //   mmap.add(new element(num,info));
+            }
+            i+=1;
+            nums.remove(nums.size()-1);
+        }
+    }
 
     @Override
     public Void visitInitval(compileParser.InitvalContext ctx) {
@@ -969,44 +1134,148 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitLval(compileParser.LvalContext ctx) {
-        String name=ctx.getText();
-        boolean check=false;
-        for(int i=tempFunction.tempVarBlock.in.size()-1;i>=0;i--){
-            if(tempFunction.tempVarBlock.in.get(i).getName().equals(name)){
-                if(tempFunction.tempVarBlock.in.get(i).isIfConst()==true){     //const
-                    Node node=new Node(-1,tempFunction.tempVarBlock.in.get(i).getVal(),name,"constVar",0);
-                    tempNode=node;
-                    check=true;
-                    break;
-                }
-                else if(tempFunction.tempVarBlock.in.get(i).getType().equals("globalInt")){
-                   // Node loadNode=tempFunction.nodeList.get(nodeId-1);
-                    int top=tempFunction.nodeList.size();
-                    Var g_Var=tempFunction.tempVarBlock.in.get(i);
-                    Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
-                    tempNode=node;
-                    tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"@"+g_Var.getName());
-                    tempFunction.nodeList.add(node);
-                    check=true;
-                    break;
-                }
-                else{                                  //int
-                    int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
-                    Node loadNode=tempFunction.nodeList.get(nodeId-1);
-                    int top=tempFunction.nodeList.size();
-                    Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
-                    tempNode=node;
-                    tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
-                    tempFunction.nodeList.add(node);
-                    check=true;
-                    break;
+        if(ctx.Ident()!=null&&ctx.children.size()==1){ //只有ident
+            String name=ctx.getText();
+            boolean check=false;
+            for(int i=tempFunction.tempVarBlock.in.size()-1;i>=0;i--){
+                if(tempFunction.tempVarBlock.in.get(i).getName().equals(name)){
+                    if(tempFunction.tempVarBlock.in.get(i).isIfConst()==true){     //const
+                        Node node=new Node(-1,tempFunction.tempVarBlock.in.get(i).getVal(),name,"constVar",0);
+                        tempNode=node;
+                        check=true;
+                        break;
+                    }
+                    else if(tempFunction.tempVarBlock.in.get(i).getType().equals("globalInt")){
+                        // Node loadNode=tempFunction.nodeList.get(nodeId-1);
+                        int top=tempFunction.nodeList.size();
+                        Var g_Var=tempFunction.tempVarBlock.in.get(i);
+                        Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
+                        tempNode=node;
+                        tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"@"+g_Var.getName());
+                        tempFunction.nodeList.add(node);
+                        check=true;
+                        break;
+                    }
+                    else{                                  //int
+                        int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
+                        Node loadNode=tempFunction.nodeList.get(nodeId-1);
+                        int top=tempFunction.nodeList.size();
+                        Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
+                        tempNode=node;
+                        tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
+                        tempFunction.nodeList.add(node);
+                        check=true;
+                        break;
+                    }
                 }
             }
+        }
+        else{     //说明是数组
+            List<Node> arrayNode=new ArrayList<>();
+            for(int i=0;i<ctx.exp().size();i++){
+                visit(ctx.exp(i));
+                arrayNode.add(tempNode);
+            }
+            Var word=findVar(ctx.Ident().getText());  //找到word
+           if(word.getType().equals("array")) {
+               //System.out.println("swswsws");
+               int tt = 1, dest = 0;
+               if (arrayNode.size() > word.numlist.size())
+                   System.exit(-1);
+               String first = "";
+               if (arrayNode.size() > 0) {
+                   Node last = arrayNode.get(0);
+                   if (last.getType().equals("num")) {
+                       first = "" + last.getVal();
+                   } else {
+                       first = "%" + last.getId();
+                   }
+                   for (int i = 1; i < arrayNode.size(); i++) {
+                       Node now = arrayNode.get(i);
+                       String second = "";
+                       if (now.getType().equals("num")) {
+                           second = "" + now.getVal();
+                       } else {
+                           second = "%" + now.getId();
+                       }
+                       // String second = now.type.equals("num") ? "" + now.num : now.address;
+                       if (i == 1) {
+                           Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
+                           tempNode = a;
+                           tempFunction.nodeList.add(a);
+                           tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = mul i32 " + word.numlist.get(i) + ",  " + first);
+                       } else {
+                           Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
+                           tempNode = a;
+                           tempFunction.nodeList.add(a);
+                           tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = mul i32 " + word.numlist.get(i) + ",  %" + tt);
+                       }
+
+                       tt = tempFunction.nodeList.size() - 1;
+                       Node a = new Node(tempFunction.nodeList.size(), -1, "add", 0);
+                       tempNode = a;
+                       tempFunction.nodeList.add(a);
+                       tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = add i32 " + second + ",  %" + (tt+1));
+                       tt = tempFunction.nodeList.size() - 1;
+                       last = now;
+                   }
+                   dest = tt;
+               }
+              // if(word.fuzhi.equals("i32*"))
+               if(word.isIfConst()==true){
+                   Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
+                   tempNode = a;
+                   tempFunction.nodeList.add(a);
+                   tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()-1));
+               }
+
+               else
+               {
+                   Node a = new Node(tempFunction.nodeList.size(), -1, "getelementptr", 0);
+                   tempNode = a;
+                   tempFunction.nodeList.add(a);
+                   tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
+               }
+//
+
+               if (arrayNode.size() == 1) {
+                   //curfuncblock.step+=1;
+                   Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
+                   tempFunction.nodeList.add(a);
+                   tempNode = a;
+                   tt = tempFunction.nodeList.size() - 1;
+                   tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 " + first);
+                   //curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = getelementptr i32, i32* %" + tt + ", i32 " + first + "\n");
+               } else if (arrayNode.size() > 1) {
+                   Node a = new Node(tempFunction.nodeList.size(), 0, "getelementptr", 0);
+                   tempFunction.nodeList.add(a);
+                   tempNode = a;
+                   tt = tempFunction.nodeList.size() - 1;
+                   tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + tt + ", i32 %" + (dest+1));
+
+                   // curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = getelementptr i32, i32* %" + tt + ", i32 %" + dest + "\n");
+               }
+               if (arrayNode.size() == word.numlist.size()) {
+                   Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
+                   tempFunction.nodeList.add(a);
+                   tempNode = a;
+                   tt = tempFunction.nodeList.size() - 1;
+                   tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = load i32, i32* %" + tt);
+                   // curfuncblock.step += 1;
+                   // tt = curfuncblock.step - 1;
+                   // curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("    %" + curfuncblock.step + " = load i32, i32* %" + tt + '\n');
+               }
+               //info.type="pointer";
+               //info.address="%"+curfuncblock.step;
+               //curfuncblock.step+=1;
+           }
         }
         //if(!check){
          //   System.exit(7);
         //}
-        return super.visitLval(ctx);
+       // System.out.println(tempNode.getId()+" "+tempNode.getType());
+     //   System.out.println(tempNode.getId()+" "+tempNode.getType());
+        return null;
     }
 
     @Override
@@ -1114,6 +1383,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     public Void visitFuncfparam(compileParser.FuncfparamContext ctx) {
         return super.visitFuncfparam(ctx);
     }
+
     public void Function_initial(String type){    //function块的初始化
         tempFunction=new Function(type);
         funcblockList.add(tempFunction);
