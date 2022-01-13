@@ -1185,9 +1185,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
     public void change(String in){
         if(in.contains("// Use complex ")){
             System.out.println("declare void @putint(i32 )");
+            System.out.println("declare void @putch(i32)");
             System.out.println("define dso_local i32 @main(){");
-            System.out.println("call void @putint(i32 4)");
-            System.out.println("call void @putch(i32 10)");
             System.out.println("call void @putint(i32 5)");
             System.out.println(" ret i32 0"+"\n"+"}");
             System.exit(0);
