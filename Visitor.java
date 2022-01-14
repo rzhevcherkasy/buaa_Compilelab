@@ -682,11 +682,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         String p1="";
                         for(int i=0;i<node.size();i++)
                         {
+                            Var check=func.params.get(i);
+
                             //System.out.println(node.get(i).getType());
                             if(node.get(i).getType().equals("num")){
                                 p1+="i32"+" "+node.get(i).getVal();
                             }
-                            else if(node.get(i).getType().equals("load")||node.get(i).getType().equals("exp")||node.get(i).getType().equals("call")){
+                            else if(check.getType().equals("varword")){
                                 p1+="i32"+" "+"%"+(node.get(i).getId()+1);
                             }
                             else{
