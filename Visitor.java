@@ -1394,6 +1394,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     }
     @Override
     public Void visitLval(compileParser.LvalContext ctx) {
+        String k="";
         if(ctx.children.size()==1){ //只有ident
             String name=ctx.getText();
             boolean check=false;
