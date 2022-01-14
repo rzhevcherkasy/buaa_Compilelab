@@ -138,7 +138,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
                     tempFunction.tempBlock.blockOutput.add("    %"+(tempFunction.nodeList.size()+1)+" = alloca i32*" );
                     // String name, boolean ifConst, String type, int val, int block, int nodeId
-                    Var arrayVar=new Var(word.getName(),false,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1);
+                    Var arrayVar=new Var(word.getName(),true,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1);
                     Node arrayNode=new Node(tempFunction.nodeList.size(),0,"alloca",0);
                     tempNode=arrayNode;
                     tempFunction.nodeList.add(arrayNode);
@@ -1450,11 +1450,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        last = now;
                    }
                    dest = tt;
+                //   System.out.println(word.getName()+" "+word.isIfConst()+"+"+word.getNodeId());
                    if(word.isIfConst()==true){
                        Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
                        tempNode = a;
                        tempFunction.nodeList.add(a);
-                       tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()-1));
+                       tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()));
                    }
 
                    else
