@@ -283,3 +283,4 @@ define dso_local void @f(i32 *%0,i32 %1){
     ret void
 
 }
+
