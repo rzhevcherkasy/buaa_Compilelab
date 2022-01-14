@@ -1081,8 +1081,151 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitConstDef(compileParser.ConstDefContext ctx) {
+        if(ctx.constExp().size()!=0&&ctx.children.size()>=2){                   //数组
+            //System.out.println("jwgddwjgdw");
 
-        if(ctx.children.size()==1){    //没有初始化
+            String arrayname=ctx.Ident().getText();
+            //if (findVar(arrayname) != null)
+            //   System.exit(90);
+            int num=1;
+            List<Integer>numbers=new ArrayList<>();
+//                int tianchong=a.Brackets().size()/2-a.constexp().size();
+//                if(tianchong>0)
+//                    numbers.add(0);
+            for(int a=0;a<ctx.constExp().size();a++)
+            {
+                visit(ctx.constExp(a));
+                num*=tempNode.getVal();
+                numbers.add(tempNode.getVal());
+            }
+            // System.out.println("jwgddwjgdw");
+            if(tempFunction.tempBlock.type.equals("func")) {
+
+                Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"array",0,"i32",num,numbers);
+                tempFunction.nodeList.add(arrayNode);
+                tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = alloca [" + num + "x i32]");
+                // int id, int val, String name, String type, int depth, String geshi, int length, List<Integer> numlist
+                tempNode=arrayNode;
+                Var arrayVar=new Var(ctx.Ident().getText(),false,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+                tempFunction.tempVarBlock.in.add(arrayVar);
+                //tempFunction.nodeList.add(arrayNode);
+
+            }
+            else
+            {
+
+                Var arrayVar=new Var(ctx.Ident().getText(),false,"global_array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+                // tempFunction.tempVarBlock.in.add(arrayVar);
+                tempFunction.tempVarBlock.in.add(arrayVar);
+                if(tempFunction.tempBlock.type.equals("decl")){
+                    globalVar.add(arrayVar);
+                }
+                if(ctx.constInitval()==null||ctx.constInitval().getText().equals("{}")){
+
+                    tempFunction.tempBlock.blockOutput.add("@"+ctx.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer");
+                }
+
+            }
+            // System.out.println("jwgddwjgdw");
+            //else     //const用的
+            // {
+            //   words.add(new wordinfo("@" + wordname, 0, a.Ident().getText(), "array",num,numbers));
+            //     if(a.initval()==null)
+            //       curfuncblock.nowblock.output = curfuncblock.nowblock.output.concat("@"+a.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer"+"\n");
+            //  }
+            if(ctx.constInitval()!=null&&!(ctx.constInitval().getText().equals("{}")))
+            {
+                //System.out.println("jwgddwjgdw");
+                int index=0;
+                // System.out.println(arrayname);
+                Var array=findVar(arrayname); //得到array
+
+
+                // System.out.println(array.getName());
+                //List<element>mmp=new ArrayList<>();
+                //List<Integer> aa=new ArrayList<>();
+                List<Integer> map_num=new ArrayList<>();  //mmp_num
+                List<Integer> nums=new ArrayList<>(); //aa
+                List<Node> map_node=new ArrayList<>();  //map_node
+                //  System.out.println("jwgddwjgdw");
+                if(tempFunction.tempBlock.type.equals("func")) {
+
+                    Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"getelementptr",0,"i32",num,numbers);
+                    tempFunction.nodeList.add(arrayNode);
+                    index=tempFunction.nodeList.size();
+                    tempNode=arrayNode;
+                    tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() +" = getelementptr [" + array.length + " x i32],[" + array.length + " x i32]* " + "%"+(array.getNodeId()-1) + ", i32 0, i32 0" );
+                    tempFunction.tempBlock.blockOutput.add("    call void @memset(i32* %" + tempFunction.nodeList.size()+ ", i32 0, i32 " + 4*array.length + ")");
+                    //Node arrayNode=new Node(tempFunction.nodeList.size(),0,ctx.Ident().getText(),"getelementptr",0,"i32",num,numbers);
+                }
+                //  System.out.println("sjswswswjgdw");
+
+                condealarray(ctx.constInitval(),1,array,nums,map_num,map_node);
+                // System.out.println("sjswswswjgdw");
+                int d=0;
+                //System.out.println("jwgddwjgdw");
+                Integer last=-1;
+                String s="[";
+                for (int u=1;u<map_node.size();u++) {
+                    Integer addr= map_num.get(u);
+                    Node va=map_node.get(u);
+                    //nodeinfo value=entry.value;
+                    String first;
+                    //  String first=value.type.equals("num")?""+value.num:value.address;
+                    if (va.getType().equals("num")) {
+                        first = "" + va.getVal();
+                    } else {
+                        first = "%" + (va.getId()+1);
+                    }
+                    if(tempFunction.tempBlock.type.equals("func")) {
+                        Node a=new Node(tempFunction.nodeList.size(),0,"getelementptr",0);
+                        tempFunction.nodeList.add(a);
+                        tempNode=a;
+                        tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = getelementptr i32, i32* %" + index + ", i32 " + addr );
+                        tempFunction.tempBlock.blockOutput.add("    store i32 " +  first + ", i32 *%" + tempFunction.nodeList.size() );
+                    }
+                    else{
+                        d=addr-last-1;
+                        if(d>0)
+                        {
+                            for(int i=1;i<=d;i++)
+                                s+="i32 0,";
+//
+                        }
+
+                        s+=" i32 "+va.getVal()+",";
+                    }
+                    last=addr;
+                }
+
+
+                if(s.equals("["))
+                    s=" zeroinitializer ";
+                else
+                {
+                    d=array.length-1-last;
+                    if(d>0)
+                    {
+                        for(int i=1;i<=d;i++)
+                            s+="i32 0,";
+//
+                    }
+                    String fuzhinew="";
+                    for(int i=0;i<s.length()-1;i++)
+                    {
+                        fuzhinew+=s.charAt(i);
+                    }
+                    s=fuzhinew;
+                    s+="]";
+                }
+                if(tempFunction.tempBlock.type.equals("decl"))
+                {
+                    // System.out.println(array.getName()+" = dso_local global [ " + num + "x i32]"+s);
+                    tempFunction.tempBlock.blockOutput.add("@"+array.getName()+" = dso_local global [ " + num + "x i32]"+s);
+                }
+            }
+        }
+        else if(ctx.children.size()==1){    //没有初始化
             int constNum=dealNum(ctx.children.get(0).getText());
             // Node node=new Node(nodeList.size(),0,ctx.children.get(0).getText(),"constVar",0);
             //nodeList.add(node);
@@ -1367,6 +1510,32 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
     }
 
+    void condealarray(compileParser.ConstInitvalContext ctx, int deep, Var word, List<Integer>nums, List<Integer> map_num,List<Node> map_node)
+    {
+        int i=0;
+        for(compileParser.ConstInitvalContext  initval:ctx.constInitval())
+        {
+            nums.add(i);
+            if(deep<word.numlist.size()) {
+                condealarray(initval, deep + 1, word, nums,map_num,map_node);
+            }
+
+            else{
+                int num=nums.get(0);
+                for(int j=1;j<word.numlist.size();j++)
+                {
+                    num=num*word.numlist.get(j)+nums.get(j);
+                }
+                visit(initval.constExp());
+                map_node.add(tempNode);
+                map_num.add(num);
+                //  nodeinfo info=(nodeinfo) visit(initval.exp());
+                //   mmap.add(new element(num,info));
+            }
+            i+=1;
+            nums.remove(nums.size()-1);
+        }
+    }
     @Override
     public Void visitInitval(compileParser.InitvalContext ctx) {
         return super.visitInitval(ctx);
