@@ -22,6 +22,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     int tempId=0;
     int tempNum=0;
     int step=0;   //Block步数
+    Var retVar=null;  //lab8
    // Block tempBlock=null;
     Node tempNode=null;
     String op;
@@ -58,11 +59,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 {
                     a.blockOutput.add("    ret void\n");
                 }
-                if(f.name.equals("func")&&f.blocks.get(0).blockOutput.size()>=1){
+                if(!f.name.equals("decl")&&f.blocks.get(0).blockOutput.size()>=1){
                     //System.out.println("define dso_local i32 @main(){");
-                    if(i!=0){
+                    if(i!=0&&a.start!=0){
                         System.out.println("a"+a.start+":");
                     }
+
                 }
                // if(f.returntype.equals("func")){
                     //System.out.println("define dso_local i32 @main(){");
@@ -72,7 +74,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     System.out.println(a.blockOutput.get(k));
                 }
             }
-            if(f.returntype.equals("func")){
+            if(f.blocks.size()>=2){
                // System.out.println("define dso_local i32 @main(){");
                 System.out.println("}");
             }
@@ -89,7 +91,72 @@ public class Visitor extends  compileBaseVisitor<Void> {
     @Override public Void visitFuncDef(compileParser.FuncDefContext ctx) {
         String defOutput="";  //函数定义用的输出语句
         String funcType=ctx.funcType().getText();
-        Function_initial("func");
+        String shu1="";
+        String shu2="";
+        if(funcType.equals("int")){
+            shu1="i32";
+        }
+        else{
+            shu1="void";
+        }
+        tempFunction.returntype=shu1;
+        if(ctx.funcfparams()!=null){
+            List<Var> params=new ArrayList<>();
+            for(int k=0;k<ctx.funcfparams().funcfparam().size();k++){
+                visit(ctx.funcfparams().funcfparam(k));
+                params.add(retVar);
+            }
+            tempFunction.params=params;
+            for (int i=0;i<params.size();i++) {
+                Var word=params.get(i);
+                if (word.getType().equals("varword")) shu2 += "i32 " + "%"+word.getNodeId() ;
+                else shu2 += "i32 *" + "%"+word.getNodeId() ;
+                if(i< params.size()-1)
+                   shu2+=',';
+            }
+        }
+        tempFunction.name=ctx.Ident().getText();
+        tempFunction.address="@"+tempFunction.name;
+        tempFunction.tempBlock.blockOutput.add("define dso_local "+shu1+" @"+ctx.Ident()+"("+shu2+"){");
+        tempFunction.tempBlock=new Block(tempFunction.tempBlock,tempFunction.step++);
+        tempFunction.blocks.add(tempFunction.tempBlock);
+        tempFunction.tempBlock.type="func";
+        tempFunction.tempBlock.set=false;
+        if(tempFunction.params!=null){
+            for(int j=0;j<tempFunction.params.size();j++)
+            {
+                Var word=tempFunction.params.get(j);
+                if(word.getType().equals("array"))
+                {
+
+                    tempFunction.tempBlock.blockOutput.add("    %"+(tempFunction.nodeList.size()+1)+" = alloca i32*" );
+                    // String name, boolean ifConst, String type, int val, int block, int nodeId
+                    Var arrayVar=new Var(word.getName(),false,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1);
+                    Node arrayNode=new Node(tempFunction.nodeList.size(),0,"alloca",0);
+                    tempFunction.nodeList.add(arrayNode);
+
+                    // tempFunction.tempVarBlock.in.add(arrayVar);
+                    tempFunction.tempVarBlock.in.add(arrayVar);
+                    arrayVar.numlist=word.numlist;
+                    tempFunction.tempBlock.blockOutput.add("    store i32*  "+"%"+word.getNodeId()+", i32* * %"+tempFunction.nodeList.size());
+                }
+                else
+                {
+                    tempFunction.tempBlock.blockOutput.add("    %"+(tempFunction.nodeList.size()+1)+" = alloca i32" );
+                    // String name, boolean ifConst, String type, int val, int block, int nodeId
+                    Var arrayVar=new Var(word.getName(),false,"ss",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1);
+                    Node arrayNode=new Node(tempFunction.nodeList.size(),0,"alloca",0);
+                    tempFunction.nodeList.add(arrayNode);
+
+                    // tempFunction.tempVarBlock.in.add(arrayVar);
+                    tempFunction.tempVarBlock.in.add(arrayVar);
+                    arrayVar.numlist=word.numlist;
+                    tempFunction.tempBlock.blockOutput.add("    store i32  "+"%"+word.getNodeId()+", i32*  %"+tempFunction.nodeList.size());
+
+                }
+            }
+        }
+
         visit(ctx.funcType());
         visit(ctx.block());
         return null;
@@ -161,8 +228,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
     }
     Block createnewblock(Block parblock,boolean a) {
         if(!parblock.set)
-            parblock.blockOutput.add("    br label %"+"a"+step+'\n');
-        tempFunction.blocks.add(new Block(tempFunction.tempBlock, step++));
+            parblock.blockOutput.add("    br label %"+"a"+tempFunction.step+'\n');
+        tempFunction.blocks.add(new Block(tempFunction.tempBlock, tempFunction.step++));
         tempFunction.tempBlock = tempFunction.blocks.get(tempFunction.blocks.size() - 1);
         tempFunction.tempBlock.set=a;
         return tempFunction.tempBlock;
@@ -1454,7 +1521,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             tempFunction.tempBlock=createnewblock(tempFunction.tempBlock,true);
             visit(ctx.eqExp(i));
             tempFunction.tempBlock.end=tempFunction.nodeList.size()-1;
-            tempFunction.tempBlock.trueblock=step;
+            tempFunction.tempBlock.trueblock=tempFunction.step;
             blocks.add(tempFunction.tempBlock);
         }
         Block dest=createnewblock(tempFunction.tempBlock,false);
@@ -1486,7 +1553,36 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override
     public Void visitFuncfparam(compileParser.FuncfparamContext ctx) {
-        return super.visitFuncfparam(ctx);
+        Var word=new Var();
+        String name=ctx.Ident().getText();
+        int flag=1;
+        word.setName(name);
+        tempFunction.tempBlock.type="decl";
+        int total=0;
+        for(int i=0;i<ctx.children.size();i++)
+        {
+            if(ctx.children.get(i).getText().equals("["))
+                total+=1;
+        }
+        if(total>0&&ctx.exp().size()<total)
+            word.numlist.add(0);
+        for(int i=0;i<ctx.exp().size();i++)
+        {
+            flag=1;
+            visit(ctx.exp(i));
+            word.numlist.add(tempNode.getVal());
+        }
+        if(word.numlist.size()>0) {
+            word.setType("array");
+        }
+        else word.setType("varword");
+        //public Var(String name, boolean ifConst, String type, int val, int block, int nodeId, int length, List<Integer> numlist)
+        word.setNodeId(tempFunction.nodeList.size());
+        Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size(),"word",0);
+        tempFunction.nodeList.add(node);
+        retVar=word;
+       // curfuncblock.step+=1;
+        return null;
     }
 
     public void Function_initial(String type){    //function块的初始化
