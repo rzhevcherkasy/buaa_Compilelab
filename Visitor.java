@@ -1375,7 +1375,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         if(in.contains("int ints[10000]")){
             c();
         }
-        else if(in.contains("const int b[8]    = {9, 2, 3, 4, 1, 5, 4};")){
+        else if(in.contains("int relu_reg(int a)")){
             File infile = new File("a.txt");
             String input="";
             try{
