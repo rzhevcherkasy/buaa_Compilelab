@@ -31,6 +31,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
     @Override public Void visitCompUnit(compileParser.CompUnitContext ctx) {
         System.out.println("declare void @memset(i32*, i32, i32)");
+        System.out.println("declare i32 @getarray(i32*)");
+        System.out.println("declare void @putarray(i32, i32*)");
         Function_initial("decl");
         if(ctx.decl()!=null){
             for(int i=0;i<ctx.decl().size();i++){
@@ -748,6 +750,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     tempFunction.nodeList.add(node);
                     tempNode=node;
                     tempFunction. tempBlock.blockOutput.add(whiteSpace + "%"+(tempFunction.nodeList.size())+" = call i32 @getch()");
+                }
+                else if(linkFunction.equals("getarray")){
+                    Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size(),"call",0);
+                    tempFunction.nodeList.add(node);
+                    tempNode=node;
+                    tempFunction. tempBlock.blockOutput.add(whiteSpace + "%"+(tempFunction.nodeList.size())+" = call i32 @getarray("+"i32*%"+(tempFunction.nodeList.size()-1)+")");
                 }
                 else if(linkFunction.equals("putint")){
                     boolean check=false;
