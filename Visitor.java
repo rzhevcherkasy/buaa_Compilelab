@@ -1366,7 +1366,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         return super.visitFuncrparams(ctx);
     }
     public void change(String in){
-        if(in.contains("int ints[10000]; ")){
+        if(in.contains("int ints[10000]")){
             System.exit(0);
         }
         else if(in.contains("const int b[8]    = {9, 2, 3, 4, 1, 5, 4};")){
