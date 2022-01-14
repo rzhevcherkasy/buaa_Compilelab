@@ -884,6 +884,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("load")){
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
+            else if(leftNode.getType().equals("load**")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
             else if(leftNode.getType().equals("call")){
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
@@ -907,6 +910,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             right=String.valueOf(rightNode.getVal());
         }
         else if(rightNode.getType().equals("load")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        else if(rightNode.getType().equals("load**")){
             right="%"+String.valueOf(rightNode.getId()+1);
         }
         else if(rightNode.getType().equals("array")){
