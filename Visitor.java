@@ -680,6 +680,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         String p1="";
                         for(int i=0;i<node.size();i++)
                         {
+                            //System.out.println(node.get(i).getType());
                             if(node.get(i).getType().equals("num")){
                                 p1+="i32"+" "+node.get(i).getVal();
                             }
@@ -705,7 +706,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
 
                         }
                         else
-                            tempFunction.tempBlock.blockOutput.add("     call " + func.returntype + func.address + "(" + params + ")");
+                            tempFunction.tempBlock.blockOutput.add("     call " + func.returntype + func.address + "(" + p1 + ")");
 
 
 //                    curfuncblock.step+=1;
