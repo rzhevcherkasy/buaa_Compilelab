@@ -1459,7 +1459,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        last = now;
                    }
                    dest = tt;
-                   System.out.println(word.getName()+" "+word.isIfConst()+"+"+word.getNodeId());
+                  // System.out.println(word.getName()+" "+word.isIfConst()+"+"+word.getNodeId());
                    if(word.isIfConst()==true){
                        Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
                        tempNode = a;
