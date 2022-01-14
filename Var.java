@@ -4,7 +4,7 @@ import java.util.List;
 public class Var {
     private String name;  //名字
     private boolean ifConst;  //是否是const
-    private String type;  //int,globalInt,array
+    private String type;  //int,globalInt,array,global_array
     private int val; //实际的数值
     private int block; //在哪个块里
     private int nodeId; //寄存器什么位置
@@ -85,5 +85,8 @@ public class Var {
         this.nodeId = nodeId;
         this.length = length;
         this.numlist = numlist;
+    }
+
+    public Var() {
     }
 }

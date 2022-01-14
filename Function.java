@@ -5,7 +5,7 @@ public class Function {
     String name;
     String address;
     String returntype="";
-    //List<param> params;
+    List<Var> params;
     int step=0;
     Block tempBlock=null;
     Varblock tempVarBlock;
