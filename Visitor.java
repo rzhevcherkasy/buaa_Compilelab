@@ -1367,6 +1367,15 @@ public class Visitor extends  compileBaseVisitor<Void> {
             for(int i=tempFunction.tempVarBlock.in.size()-1;i>=0;i--){
                 if(tempFunction.tempVarBlock.in.get(i).getName().equals(name)){
                     if(tempFunction.tempVarBlock.in.get(i).isIfConst()==true){     //const
+                        Var word=tempFunction.tempVarBlock.in.get(i);
+                        if(word.getType().equals("array")){
+                            Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
+                            tempNode = a;
+                            tempFunction.nodeList.add(a);
+                            tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()));
+                            break;
+                        }
+
                         Node node=new Node(-1,tempFunction.tempVarBlock.in.get(i).getVal(),name,"constVar",0);
                         tempNode=node;
                         check=true;
@@ -1450,7 +1459,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                        last = now;
                    }
                    dest = tt;
-                //   System.out.println(word.getName()+" "+word.isIfConst()+"+"+word.getNodeId());
+                   System.out.println(word.getName()+" "+word.isIfConst()+"+"+word.getNodeId());
                    if(word.isIfConst()==true){
                        Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
                        tempNode = a;
