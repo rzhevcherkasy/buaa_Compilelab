@@ -51,7 +51,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         for(int w=0;w<funcblockList.size();w++) {
             Function f=funcblockList.get(w);
             if(f.name.equals("func")&&f.blocks.get(0).blockOutput.size()>=1){
-                System.out.println("define dso_local i32 @main(){");
+               // System.out.println("define dso_local i32 @main(){");
             }
             //System.out.println("define dso_local i32 @main(){");
             for(int i=0;i<f.blocks.size();i++)
