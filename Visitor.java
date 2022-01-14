@@ -1506,7 +1506,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                            Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
                            tempNode = a;
                            tempFunction.nodeList.add(a);
-                           tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = mul i32 " + word.numlist.get(i) + ",  %" + tt);
+                           tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = mul i32 " + word.numlist.get(i) + ",  %" + (tt+1));
                        }
 
                        tt = tempFunction.nodeList.size() - 1;
