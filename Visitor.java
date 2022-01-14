@@ -1624,7 +1624,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size()+1,"cmp",0);
                 tempFunction.nodeList.add(node);
 
-                if(left.getType().equals("load")){
+                if(left.getType().equals("load")||left.getType().equals("call")){
                     tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+"= icmp ne i32 0, "+"%"+(left.getId()+1));
                 }
                 else{
