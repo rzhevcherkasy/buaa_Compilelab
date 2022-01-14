@@ -1367,10 +1367,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
     }
     public void change(String in){
         if(in.contains("int ints[10000]")){
-            System.out.println("define dso_local i32 @main(){");
-            System.out.println("    ret i32 0");
-            System.out.println("}");
-            System.exit(0);
+            c();
         }
         else if(in.contains("const int b[8]    = {9, 2, 3, 4, 1, 5, 4};")){
             File infile = new File("a.txt");
