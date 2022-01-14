@@ -684,7 +684,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                             if(node.get(i).getType().equals("num")){
                                 p1+="i32"+" "+node.get(i).getVal();
                             }
-                            else if(node.get(i).getType().equals("load")||node.get(i).getType().equals("exp")){
+                            else if(node.get(i).getType().equals("load")||node.get(i).getType().equals("exp")||node.get(i).getType().equals("call")){
                                 p1+="i32"+" "+"%"+(node.get(i).getId()+1);
                             }
                             else{
