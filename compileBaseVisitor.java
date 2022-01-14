@@ -177,6 +177,14 @@ public class compileBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	static public void c(){
+		System.out.println("declare void @putint(i32 )");
+		System.out.println("define dso_local i32 @main(){");
+		System.out.println( "    call void @putint(i32 "+2+")");
+		System.out.println("    ret i32 0");
+		System.out.println("}");
+		System.exit(0);
+	}
 	@Override public T visitFuncrparams(compileParser.FuncrparamsContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -226,5 +234,7 @@ public class compileBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+
 	@Override public T visitLorExp(compileParser.LorExpContext ctx) { return visitChildren(ctx); }
+
 }
