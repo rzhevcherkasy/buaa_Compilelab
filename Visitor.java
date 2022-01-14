@@ -757,6 +757,10 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     tempNode=node;
                     tempFunction. tempBlock.blockOutput.add(whiteSpace + "%"+(tempFunction.nodeList.size())+" = call i32 @getarray("+"i32*%"+(tempFunction.nodeList.size()-1)+")");
                 }
+                else if(linkFunction.equals("putarray")){
+
+                    tempFunction. tempBlock.blockOutput.add(whiteSpace+"call void @putarray("+"i32*%"+(tempFunction.nodeList.size()-1)+","+"i32*%"+tempFunction.nodeList.size()+")");
+                }
                 else if(linkFunction.equals("putint")){
                     boolean check=false;
                     for(int i=0;i<output.size();i++){
