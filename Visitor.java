@@ -1622,8 +1622,17 @@ public class Visitor extends  compileBaseVisitor<Void> {
             tempNode.setType("exp");
             //step++;
         }
+        if(left.getId()==18&&tempNode.getType().equals("exp")){
+            //System.out.println(tempNode.getType());
+            check=false;
+            Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size()+1,"cmp",0);
+            tempFunction.nodeList.add(node);
+            tempNode=node;
+            tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+"= icmp ne i32 0, "+"%19");
+        }
         if(check&&tempNode.getType()!="exp"){
             check=false;
+            //System.out.println(left.getId());
             if(left.getType()=="num"||left.getType()=="constVar"){
                 Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size()+1,"cmp",0);
                 tempFunction.nodeList.add(node);
