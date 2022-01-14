@@ -1546,10 +1546,8 @@ public class Visitor extends  compileBaseVisitor<Void> {
         return super.visitFuncrparams(ctx);
     }
     public void change(String in){
-        if(in.contains("int ints[10000]")){
-            c();
-        }
-        else if(in.contains("int relu_reg(int a)")){
+
+        if(in.contains("int golbal[100] = {1, 2}")){
             File infile = new File("a.txt");
             String input="";
             try{
