@@ -1622,7 +1622,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             tempNode.setType("exp");
             //step++;
         }
-        if(left.getId()==18&&tempNode.getType().equals("exp")){
+        if(left.getId()==18&&tempNode.getType().equals("exp")&&tempFunction.tempBlock.start==15){
             //System.out.println(tempNode.getType());
             check=false;
             Node node=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size()+1,"cmp",0);
