@@ -964,6 +964,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("load")){
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
+            else if(leftNode.getType().equals("load**")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
         }
         if(rightNode.getType().equals("num")){
             right=String.valueOf(rightNode.getVal());
@@ -978,6 +981,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             right=String.valueOf(rightNode.getVal());
         }
         else if(rightNode.getType().equals("load")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        else if(rightNode.getType().equals("load**")){
             right="%"+String.valueOf(rightNode.getId()+1);
         }
         else {
@@ -1372,7 +1378,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                             Node a = new Node(tempFunction.nodeList.size(), -1, "load**", 0);
                             tempNode = a;
                             tempFunction.nodeList.add(a);
-                            tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()));
+                           tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()));
                             break;
                         }
 
@@ -1392,7 +1398,15 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         check=true;
                         break;
                     }
-                    else{                                  //int
+                    else{                                  //int arr
+                        Var word=tempFunction.tempVarBlock.in.get(i);
+                        if(word.getType().equals("array")){
+                            Node a = new Node(tempFunction.nodeList.size(), -1, "getelementptr", 0);
+                            tempNode = a;
+                            tempFunction.nodeList.add(a);
+                            tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
+                            break;
+                        }
                         int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
                         Node loadNode=tempFunction.nodeList.get(nodeId-1);
                         int top=tempFunction.nodeList.size();
