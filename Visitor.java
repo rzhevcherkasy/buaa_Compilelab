@@ -1369,7 +1369,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     if(tempFunction.tempVarBlock.in.get(i).isIfConst()==true){     //const
                         Var word=tempFunction.tempVarBlock.in.get(i);
                         if(word.getType().equals("array")){
-                            Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
+                            Node a = new Node(tempFunction.nodeList.size(), -1, "load**", 0);
                             tempNode = a;
                             tempFunction.nodeList.add(a);
                             tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()));
@@ -1461,7 +1461,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                    dest = tt;
                   // System.out.println(word.getName()+" "+word.isIfConst()+"+"+word.getNodeId());
                    if(word.isIfConst()==true){
-                       Node a = new Node(tempFunction.nodeList.size(), -1, "load", 0);
+                       Node a = new Node(tempFunction.nodeList.size(), -1, "load**", 0);
                        tempNode = a;
                        tempFunction.nodeList.add(a);
                        tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = load i32* , i32* * "+"%"+(word.getNodeId()));
@@ -1514,7 +1514,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                       }
                        else if(ifArray==false){
                           tt = tempFunction.nodeList.size() - 1;
-                          Node a = new Node(tempFunction.nodeList.size(), 0, "load", 0);
+                          Node a = new Node(tempFunction.nodeList.size(), 0, "load**", 0);
                           tempFunction.nodeList.add(a);
                           tempNode = a;
                           tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = load i32, i32* %" + (tt+1));
