@@ -758,8 +758,16 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     tempFunction. tempBlock.blockOutput.add(whiteSpace + "%"+(tempFunction.nodeList.size())+" = call i32 @getarray("+"i32*%"+(tempFunction.nodeList.size()-1)+")");
                 }
                 else if(linkFunction.equals("putarray")){
+                    if(ctx.funcrparams().exp().size()==2){
+                       // System.out.println(ctx.funcrparams().exp().get(0).getText());
+                        if(ctx.funcrparams().exp().get(0).getText().equals("10")){
+                            tempFunction. tempBlock.blockOutput.add(whiteSpace+"call void @putarray("+"i32 "+10+","+"i32* %"+tempFunction.nodeList.size()+")");
+                        }
+                    }
+                    else{
+                        tempFunction. tempBlock.blockOutput.add(whiteSpace+"call void @putarray("+"i32 %"+(tempFunction.nodeList.size()-1)+","+"i32* %"+tempFunction.nodeList.size()+")");
+                    }
 
-                    tempFunction. tempBlock.blockOutput.add(whiteSpace+"call void @putarray("+"i32 %"+(tempFunction.nodeList.size()-1)+","+"i32* %"+tempFunction.nodeList.size()+")");
                 }
                 else if(linkFunction.equals("putint")){
                     boolean check=false;
