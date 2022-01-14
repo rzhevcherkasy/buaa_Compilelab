@@ -788,13 +788,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     // Node node=new Node(nodeList.size(),nodeList.size(),"call",0);
                     //nodeList.add(node);
                     // tempNode=node;
-                    if(inputNode.getId()==61){
-                        tempFunction.tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+118+")");
-                    }
-                    else if(inputNode.getId()==27){
-                        tempFunction.tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+22+")");
-                    }
-                    else if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
+                    //if(inputNode.getId()==61){
+                   //     tempFunction.tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+118+")");
+                  //  }
+                   // else if(inputNode.getId()==27){
+                   //     tempFunction.tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+22+")");
+                  //  }
+                    if(inputNode.getType()=="num"||inputNode.getType()=="constVar"){
                         tempFunction.tempBlock.blockOutput.add(whiteSpace + "call void @putint(i32 "+inputNode.getVal()+")");
                     }
                     else{
