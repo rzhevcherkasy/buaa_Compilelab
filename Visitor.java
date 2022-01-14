@@ -1228,7 +1228,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     if (va.getType().equals("num")) {
                         first = "" + va.getVal();
                     } else {
-                        first = "%" + va.getId();
+                        first = "%" + (va.getId()+1);
                     }
                     if(tempFunction.tempBlock.type.equals("func")) {
                         Node a=new Node(tempFunction.nodeList.size(),0,"getelementptr",0);
