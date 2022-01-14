@@ -759,7 +759,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
                 else if(linkFunction.equals("putarray")){
 
-                    tempFunction. tempBlock.blockOutput.add(whiteSpace+"call void @putarray("+"i32*%"+(tempFunction.nodeList.size()-1)+","+"i32*%"+tempFunction.nodeList.size()+")");
+                    tempFunction. tempBlock.blockOutput.add(whiteSpace+"call void @putarray("+"i32* %"+(tempFunction.nodeList.size()-1)+","+"i32* %"+tempFunction.nodeList.size()+")");
                 }
                 else if(linkFunction.equals("putint")){
                     boolean check=false;
