@@ -61,7 +61,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
                 if(!f.name.equals("decl")&&f.blocks.get(0).blockOutput.size()>=1){
                     //System.out.println("define dso_local i32 @main(){");
-                    if(i!=0&&a.start!=0){
+                    if(i!=0&&a.start!=0&&a.blockOutput.size()>=1){
                         System.out.println("a"+a.start+":");
                     }
 
