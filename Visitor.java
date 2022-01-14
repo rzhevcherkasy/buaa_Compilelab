@@ -1169,13 +1169,14 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else
             {
 
-                Var arrayVar=new Var(ctx.Ident().getText(),false,"global_array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
+                Var arrayVar=new Var(ctx.Ident().getText(),false,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
                // tempFunction.tempVarBlock.in.add(arrayVar);
                 tempFunction.tempVarBlock.in.add(arrayVar);
                 if(tempFunction.tempBlock.type.equals("decl")){
                     globalVar.add(arrayVar);
                 }
                 if(ctx.initval()==null||ctx.initval().getText().equals("{}")){
+
                     tempFunction.tempBlock.blockOutput.add("@"+ctx.Ident().getText()+" = dso_local global [ " + num + "x i32] zeroinitializer");
                 }
 
@@ -1274,7 +1275,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 }
                 if(tempFunction.tempBlock.type.equals("decl"))
                 {
-                  //  System.out.println(array.getName()+" = dso_local global [ " + num + "x i32]"+s);
+                   // System.out.println(array.getName()+" = dso_local global [ " + num + "x i32]"+s);
                     tempFunction.tempBlock.blockOutput.add("@"+array.getName()+" = dso_local global [ " + num + "x i32]"+s);
                 }
             }
