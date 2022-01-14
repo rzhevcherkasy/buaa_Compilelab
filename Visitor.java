@@ -82,6 +82,13 @@ public class Visitor extends  compileBaseVisitor<Void> {
         }
         return null;
     }
+    Function findfunc(String name)
+    {
+        for(Function a:funcblockList)
+            if(a.name.equals(name))
+                return a;
+        return null;
+    }
     /**
      * {@inheritDoc}
      *
@@ -133,6 +140,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     // String name, boolean ifConst, String type, int val, int block, int nodeId
                     Var arrayVar=new Var(word.getName(),false,"array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1);
                     Node arrayNode=new Node(tempFunction.nodeList.size(),0,"alloca",0);
+                    tempNode=arrayNode;
                     tempFunction.nodeList.add(arrayNode);
 
                     // tempFunction.tempVarBlock.in.add(arrayVar);
@@ -147,7 +155,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     Var arrayVar=new Var(word.getName(),false,"ss",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1);
                     Node arrayNode=new Node(tempFunction.nodeList.size(),0,"alloca",0);
                     tempFunction.nodeList.add(arrayNode);
-
+                    tempNode=arrayNode;
                     // tempFunction.tempVarBlock.in.add(arrayVar);
                     tempFunction.tempVarBlock.in.add(arrayVar);
                     arrayVar.numlist=word.numlist;
@@ -533,7 +541,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             visit(ctx.children.get(1));
 
             String optype=ctx.children.get(1).getText();
-            if(tempFunction.name.equals("func")){
+            if(tempFunction.tempBlock.type.equals("func")){
                 OpDeal(left,right,optype);
             }
 
@@ -554,7 +562,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             Node right=tempNode;
             visit(ctx.children.get(1));
             String optype=ctx.children.get(1).getText();
-            if(tempFunction.name.equals("func")){
+            if(tempFunction.tempBlock.type.equals("func")){
                 OpDeal(left,right,optype);
             }
         }
@@ -643,7 +651,65 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 break;
             }
             case 4->{               //自定义函数
-                visit(ctx.funcrparams());
+                Function func=findfunc(ctx.Ident().getText());
+                if(func!=null){
+                    String params="";
+                    List<Node> node=new ArrayList<>();
+                    if(ctx.funcrparams()!=null){
+                        for(int k=0;k<ctx.funcrparams().exp().size();k++){
+                            visit(ctx.funcrparams().exp().get(k));
+                            node.add(tempNode);
+                        }
+                    }
+                    if(node==null) {
+                        if(func.returntype.equals("i32")) {
+                            Node lnode=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size(),"call",0);
+                            tempFunction.nodeList.add(lnode);
+                            tempNode=lnode;
+                            tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + "call " + func.returntype + func.name + "()" );
+
+                        }
+                        else
+                            tempFunction.tempBlock.blockOutput.add("    call " + func.returntype + func.name + "()" );
+
+                    }
+                    else
+                    {
+                        if(func.params!=null&&node.size()!=func.params.size())
+                            System.exit(-1);
+                        String p1="";
+                        for(int i=0;i<node.size();i++)
+                        {
+                            if(node.get(i).getType().equals("num")){
+                                p1+="i32"+" "+node.get(i).getVal();
+                            }
+                            else{
+                                p1+="i32*"+" "+"%"+(node.get(i).getId()+1);
+                            }
+                            //String params2=node.get(i).getType().equals("num")?""+nodes.get(i).num:nodes.get(i).address;
+                         //   List<wordinfo>words=initword();
+                          //  wordinfo word=findword(words,nodes.get(i).name);
+                          //  String params1=func.params.get(i).type.equals("varword")?"i32":"i32*";
+                          //  params+=params1+" "+params2;
+                            if(i<node.size()-1)
+                                p1+=',';
+                        }
+                        if(func.returntype.equals("i32")) {
+                            Node lnode=new Node(tempFunction.nodeList.size(),tempFunction.nodeList.size(),"call",0);
+                            tempFunction.nodeList.add(lnode);
+                            tempNode=lnode;
+                            tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + "=call " + func.returntype + func.address + "(" + p1+ ")" );
+
+                        }
+                        else
+                            tempFunction.tempBlock.blockOutput.add("     call " + func.returntype + func.address + "(" + params + ")");
+
+
+//                    curfuncblock.step+=1;
+                    }
+                    return null;
+                }
+               visit(ctx.funcrparams());
                 String linkFunction=ctx.children.get(0).getText();
                 if(linkFunction.equals("getint")){
                     boolean check=false;
@@ -820,6 +886,9 @@ public class Visitor extends  compileBaseVisitor<Void> {
             else if(leftNode.getType().equals("array")){
                 left="%"+String.valueOf(leftNode.getId()+1);
             }
+            else if(leftNode.getType().equals("alloca")){
+                left="%"+String.valueOf(leftNode.getId()+1);
+            }
         }
         if(rightNode.getType().equals("num")){
             right=String.valueOf(rightNode.getVal());
@@ -837,6 +906,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
             right="%"+String.valueOf(rightNode.getId()+1);
         }
         else if(rightNode.getType().equals("array")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        else if(rightNode.getType().equals("alloca")){
+            right="%"+String.valueOf(rightNode.getId()+1);
+        }
+        else if(rightNode.getType().equals("call")){
             right="%"+String.valueOf(rightNode.getId()+1);
         }
         if(left==null||right==null){
@@ -982,7 +1057,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Node node=new Node(tempFunction.nodeList.size(),constNum,ctx.children.get(0).getText(),"constVar",0);
                 Var var=new Var(ctx.children.get(0).getText(),true,"int",constNum,0,-1);
                 tempFunction.tempVarBlock.in.add(var);
-                if(tempFunction.name.equals("decl")){
+                if(tempFunction.tempBlock.type.equals("decl")){
                     globalVar.add(var);
                 }
                 // nodeList.add(node);
@@ -1049,7 +1124,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                 Var arrayVar=new Var(ctx.Ident().getText(),false,"global_array",tempFunction.nodeList.size(),0,tempFunction.nodeList.size()+1,num,numbers);
                // tempFunction.tempVarBlock.in.add(arrayVar);
                 tempFunction.tempVarBlock.in.add(arrayVar);
-                if(tempFunction.name.equals("decl")){
+                if(tempFunction.tempBlock.type.equals("decl")){
                     globalVar.add(arrayVar);
                 }
                 if(ctx.initval()==null||ctx.initval().getText().equals("{}")){
@@ -1297,7 +1372,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         // Node loadNode=tempFunction.nodeList.get(nodeId-1);
                         int top=tempFunction.nodeList.size();
                         Var g_Var=tempFunction.tempVarBlock.in.get(i);
-                        Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
+                        Node node=new Node(tempFunction.nodeList.size(),0,name,"load",0);
                         tempNode=node;
                         tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"@"+g_Var.getName());
                         tempFunction.nodeList.add(node);
@@ -1308,7 +1383,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                         int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
                         Node loadNode=tempFunction.nodeList.get(nodeId-1);
                         int top=tempFunction.nodeList.size();
-                        Node node=new Node(tempFunction.nodeList.size(),0,name+"load","load",0);
+                        Node node=new Node(tempFunction.nodeList.size(),0,name,"load",0);
                         tempNode=node;
                        tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
                         tempFunction.nodeList.add(node);
@@ -1350,12 +1425,12 @@ public class Visitor extends  compileBaseVisitor<Void> {
                            second = "%" + (now.getId()+1);
                        }
                        // String second = now.type.equals("num") ? "" + now.num : now.address;
-                       if (i == 1&&tempFunction.name.equals("func")) {
+                       if (i == 1&&tempFunction.tempBlock.type.equals("func")) {
                            Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
                            tempNode = a;
                            tempFunction.nodeList.add(a);
                            tempFunction.tempBlock.blockOutput.add("    %" + tempFunction.nodeList.size() + " = mul i32 " + word.numlist.get(i) + ",  " + first);
-                       } else if(tempFunction.name.equals("func")){
+                       } else if(tempFunction.tempBlock.type.equals("func")){
                            Node a = new Node(tempFunction.nodeList.size(), -1, "mul", 0);
                            tempNode = a;
                            tempFunction.nodeList.add(a);
