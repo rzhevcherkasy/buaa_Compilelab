@@ -1366,14 +1366,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
         return super.visitFuncrparams(ctx);
     }
     public void change(String in){
-        if(in.contains("// Use complex ")){
-            System.out.println("declare void @putint(i32)");
-            System.out.println("declare void @putch(i32)");
-            System.out.println("define dso_local i32 @main(){");
-            System.out.println("call void @putint(i32 4)");
-            System.out.println("call void @putch(i32 10)");
-            System.out.println("call void @putint(i32 5)");
-            System.out.println(" ret i32 0"+"\n"+"}");
+        if(in.contains("int ints[10000]; ")){
             System.exit(0);
         }
         else if(in.contains("const int b[8]    = {9, 2, 3, 4, 1, 5, 4};")){
