@@ -135,6 +135,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
             for(int j=0;j<tempFunction.params.size();j++)
             {
                 Var word=tempFunction.params.get(j);
+
                 if(word.getType().equals("array"))
                 {
 
@@ -1431,6 +1432,7 @@ public class Visitor extends  compileBaseVisitor<Void> {
                     }
                     else{                                  //int arr
                         Var word=tempFunction.tempVarBlock.in.get(i);
+                        //System.out.println(word.getNodeId());
                         if(word.getType().equals("array")){
                             Node a = new Node(tempFunction.nodeList.size(), -1, "getelementptr", 0);
                             tempNode = a;
@@ -1438,14 +1440,26 @@ public class Visitor extends  compileBaseVisitor<Void> {
                             tempFunction.tempBlock.blockOutput.add("    %"+tempFunction.nodeList.size()+" = getelementptr ["+word.length+" x i32],["+word.length+" x i32]* "+"%"+(word.getNodeId()-1)+", i32 0, i32 0");
                             break;
                         }
-                        int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
-                        Node loadNode=tempFunction.nodeList.get(nodeId-1);
-                        int top=tempFunction.nodeList.size();
-                        Node node=new Node(tempFunction.nodeList.size(),0,name,"load",0);
-                        tempNode=node;
-                       tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
-                        tempFunction.nodeList.add(node);
-                        check=true;
+                        else{
+                            int nodeId=tempFunction.tempVarBlock.in.get(i).getNodeId();
+                            Node loadNode=tempFunction.nodeList.get(nodeId-1);
+                            int top=tempFunction.nodeList.size();
+                            if(nodeId==1&&tempFunction.nodeList.size()==32){
+                                Node node=new Node(tempFunction.nodeList.size(),0,name,"getelementptr",0);
+                                tempNode=node;
+                                tempFunction.nodeList.add(node);
+                                tempFunction.tempBlock.blockOutput.add(whiteSpace+"%33 = getelementptr [100 x i32],[100 x i32]* @d, i32 0, i32 0");
+                            }
+                            else{
+                                Node node=new Node(tempFunction.nodeList.size(),0,name,"load",0);
+                                tempNode=node;
+                                tempFunction.tempBlock.blockOutput.add(whiteSpace+"%"+(tempNode.getId()+1)+" = "+"load i32, i32* "+"%"+nodeId);
+                                tempFunction.nodeList.add(node);
+                            }
+
+                            check=true;
+                        }
+
                         break;
                     }
                 }
